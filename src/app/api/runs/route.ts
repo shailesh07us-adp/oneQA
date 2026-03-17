@@ -9,10 +9,15 @@ export async function GET(req: Request) {
     const env = searchParams.get('env') || 'all';
     const sortBy = searchParams.get('sortBy') || 'startTime';
     const sortOrder = (searchParams.get('sortOrder') || 'desc') as 'asc' | 'desc';
+    const runId = searchParams.get('runId');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
 
     const where: any = {};
+
+    if (runId) {
+      where.id = runId;
+    }
 
     if (search) {
       where.project = { contains: search };

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import { 
   AlertTriangle, 
@@ -33,6 +34,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { clusterFailures } from "@/lib/intelligence";
 
 export default function TriagePage() {
+  return (
+    <Suspense fallback={<div className="flex h-screen w-full items-center justify-center bg-[#0a0e1a]"><RefreshCw className="w-6 h-6 text-indigo-400 animate-spin" /></div>}>
+      <TriageContent />
+    </Suspense>
+  );
+}
+
+function TriageContent() {
+  const searchParams = useSearchParams();
+  const runId = searchParams.get('runId');
   const [clusters, setClusters] = useState<any[]>([]);
   const [selectedCluster, setSelectedCluster] = useState<any | null>(null);
   const [selectedFailure, setSelectedFailure] = useState<any | null>(null);
@@ -42,8 +53,12 @@ export default function TriagePage() {
   useEffect(() => {
     async function loadExpertTriage() {
       try {
+        const runsUrl = runId 
+          ? `/api/runs?runId=${runId}` 
+          : "/api/runs?limit=100&status=failed";
+
         const [runsRes, patternsRes] = await Promise.all([
-          fetch("/api/runs?limit=100&status=failed"),
+          fetch(runsUrl),
           fetch("/api/triage/patterns")
         ]);
         
@@ -75,7 +90,7 @@ export default function TriagePage() {
     }
     
     loadExpertTriage();
-  }, []);
+  }, [runId]);
 
   const [showKBManager, setShowKBManager] = useState(false);
   const [conflict, setConflict] = useState<{ predicted: string, incoming: string } | null>(null);
@@ -188,7 +203,10 @@ export default function TriagePage() {
               </div>
             </h2>
             <p className="text-slate-500 text-lg max-w-md mx-auto leading-relaxed mb-12 font-medium">
-              Zero regressions detected across all monitored pipelines. Your systems are currently <span className="text-emerald-400 font-bold">100% Stable</span>.
+              {runId 
+                ? "This specific run has no clusterable failures. All tests passed or were skipped successfully."
+                : "Zero regressions detected across all monitored pipelines. Your systems are currently 100% Stable."
+              }
             </p>
 
             <div className="flex items-center gap-4 justify-center">

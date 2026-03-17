@@ -86,13 +86,18 @@ export function clusterFailures(runs: any[]) {
   runs.forEach(run => {
     run.suites?.forEach((suite: any) => {
       suite.tests?.forEach((test: any) => {
-        if (test.status === 'failed') {
+        const isActuallyFailed = test.status === 'failed';
+        const isNonPassingInFailedRun = test.status !== 'passed' && run.status === 'failed';
+        
+        if (isActuallyFailed || isNonPassingInFailedRun) {
           allFailedTests.push({
             ...test,
             suiteTitle: suite.title,
             runId: run.id,
             env: run.env,
-            startTime: run.startTime
+            startTime: run.startTime,
+            // Provide a descriptive error if none exists for non-passing tests
+            error: test.error || (isNonPassingInFailedRun ? `Test ${test.status} in a failed run` : "Unknown Error")
           });
         }
       });

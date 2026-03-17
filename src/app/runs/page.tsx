@@ -179,6 +179,17 @@ export default function RunsPage() {
                       </div>
                       
                       <div className="flex items-center gap-8">
+                        {!isPassed && (
+                          <button
+                            onClick={(e) => {
+                              // Link to Triage page or open specialized run triage
+                              window.location.href = `/triage?runId=${run.id}`;
+                            }}
+                            className="px-4 py-2 rounded-xl bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-rose-400 transition-all shadow-lg shadow-rose-900/40"
+                          >
+                            Perform Triage
+                          </button>
+                        )}
                         <div className="text-right">
                           <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-2">Environment</p>
                           <span className="px-3 py-1 rounded-full text-[10px] font-black bg-slate-900/50 text-slate-300 border border-white/5 uppercase tracking-widest">{run.env}</span>
@@ -287,7 +298,7 @@ export default function RunsPage() {
                                           </span>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                          {test.status === 'failed' && (
+                                          {(test.status === 'failed' || (run.status === 'failed' && test.status === 'skipped')) && (
                                             <button 
                                               onClick={() => setTriagingTestId(triagingTestId === test.id ? null : test.id)}
                                               className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded transition-all shadow-lg active:scale-95 ${triagingTestId === test.id ? 'bg-white text-black' : 'bg-rose-600 text-white hover:bg-rose-500 shadow-rose-900/20'}`}
