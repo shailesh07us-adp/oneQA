@@ -118,8 +118,8 @@ export default function UsersPage() {
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#0a0e1a]">
         <header className="h-16 flex items-center justify-between px-8 bg-[#0c1021] border-b border-slate-800/60 sticky top-0 z-10">
           <div>
-            <h1 className="text-lg font-semibold text-white">User Management</h1>
-            <p className="text-xs text-slate-500">Add users, assign roles, and manage access</p>
+            <h1 className="text-base font-bold text-white tracking-tight">User Management</h1>
+            <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Add users, assign roles, and manage access</p>
           </div>
           <button onClick={() => setShowModal(true)} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-medium hover:from-indigo-600 hover:to-purple-700 transition-all shadow-lg shadow-indigo-500/20">
             <Plus className="w-4 h-4" /> Add User

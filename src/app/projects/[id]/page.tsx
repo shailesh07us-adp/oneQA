@@ -218,10 +218,10 @@ export default function ProjectDetailPage() {
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#0a0e1a]">
         <header className="h-16 flex items-center justify-between px-8 bg-[#0c1021] border-b border-slate-800/60 sticky top-0 z-10 shrink-0">
           <div>
-            <h1 className="text-lg font-semibold text-white flex items-center gap-3">
+            <h1 className="text-base font-bold text-white flex items-center gap-3 tracking-tight">
               {project.name}
               {projectRole && (
-                <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${
                   projectRole === "PROJECT_LEAD" 
                     ? "bg-amber-500/10 text-amber-400 border-amber-500/20" 
                     : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
@@ -230,7 +230,7 @@ export default function ProjectDetailPage() {
                 </span>
               )}
             </h1>
-            <p className="text-xs text-slate-500 font-mono mt-0.5">{project.slug}</p>
+            <p className="text-[10px] text-slate-500 font-mono uppercase tracking-widest font-semibold mt-0.5">{project.slug}</p>
           </div>
           <div className="flex items-center gap-2">
             {canManageProject && (

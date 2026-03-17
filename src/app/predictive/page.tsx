@@ -40,8 +40,8 @@ export default function PredictiveAnalysisPage() {
               <Sparkles className="w-5 h-5 text-purple-400" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold text-white">Predictive Analysis</h1>
-              <p className="text-xs text-slate-500">AI-powered forecasting & release readiness</p>
+              <h1 className="text-base font-bold text-white tracking-tight">Predictive Analysis</h1>
+              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">AI-powered forecasting & release readiness</p>
             </div>
           </div>
           {adoData && !adoData.isLive && (

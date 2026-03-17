@@ -90,8 +90,8 @@ export default function RunsPage() {
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#0a0e1a]">
         <header className="h-16 flex items-center justify-between px-8 bg-[#0c1021] border-b border-slate-800/60 sticky top-0 z-10">
           <div>
-            <h1 className="text-lg font-semibold text-white">Test Runs</h1>
-            <p className="text-xs text-slate-500">Detailed execution history with test breakdowns</p>
+            <h1 className="text-base font-bold text-white tracking-tight">Test Runs</h1>
+            <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Detailed execution history with test breakdowns</p>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={handleRefresh} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/60 border border-slate-700/50 text-slate-300 text-xs font-medium hover:bg-slate-700/60 hover:text-white transition-all">

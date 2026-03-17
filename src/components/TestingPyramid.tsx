@@ -13,40 +13,38 @@ export function TestingPyramid({ unit, integration, e2e }: TestingPyramidProps) 
   const e2ePerc = total > 0 ? (e2e / total) * 100 : 0;
 
   // Pyramid dimensions
-  const width = 440;
+  const width = 520;
   const height = 200;
-  const gap = 6; // Separation between layers
+  const gap = 6;
   
-  // Weights for heights (Unit should be largest)
   const uH = 65;
   const iH = 55;
   const eH = 45;
   
   const totalH = uH + iH + eH + (gap * 2);
-  const centerX = width / 2;
-  const slope = (width / 2) / totalH;
+  const centerX = 160; // Fixed center to have more space on right
+  const slope = 1.0;   // Consistent 45-degree-ish slope
 
-  // Calculate points for each layer ensuring consistent slope
-  // Layer 1 (E2E - Top)
+  // Y levels
   const eStepYTop = 0;
   const eStepYBottom = eH;
   const eWidthBottom = eStepYBottom * slope;
 
-  // Layer 2 (INT - Middle)
   const iStepYTop = eH + gap;
   const iStepYBottom = eH + gap + iH;
   const iWidthTop = iStepYTop * slope;
   const iWidthBottom = iStepYBottom * slope;
 
-  // Layer 3 (UNIT - Bottom)
   const uStepYTop = eH + gap + iH + gap;
   const uStepYBottom = eH + gap + iH + gap + uH;
   const uWidthTop = uStepYTop * slope;
   const uWidthBottom = uStepYBottom * slope;
 
+  const labelX = 360; // Well outside the widest base (160 + 177 = 337)
+
   return (
     <div className="flex flex-col items-center w-full py-4">
-      <div className="relative w-full max-w-[400px]">
+      <div className="relative w-full max-w-[420px]">
         <svg viewBox={`0 0 ${width} ${totalH}`} className="w-full h-auto overflow-visible filter drop-shadow-[0_0_15px_rgba(0,0,0,0.5)]">
           {/* E2E Segment */}
           <path
@@ -59,8 +57,14 @@ export function TestingPyramid({ unit, integration, e2e }: TestingPyramidProps) 
             strokeWidth="1"
             className="transition-all duration-700"
           />
-          <text x={centerX} y={eStepYBottom - 12} textAnchor="middle" className="text-[12px] font-black fill-white pointer-events-none uppercase tracking-tighter">
-            E2E ({Math.round(e2ePerc)}%)
+          {/* E2E Percent (Inside) */}
+          <text x={centerX} y={eStepYBottom - 8} textAnchor="middle" className="text-[12px] font-black fill-white pointer-events-none tracking-tight">
+            {Math.round(e2ePerc)}%
+          </text>
+          {/* E2E Label & Line (Outside) */}
+          <line x1={centerX + eWidthBottom/2} y1={eStepYBottom/2} x2={labelX} y2={eStepYBottom/2} stroke="#f43f5e" strokeWidth="1" strokeDasharray="2 2" />
+          <text x={labelX + 8} y={eStepYBottom/2 + 4} className="text-[11px] font-bold fill-rose-400 uppercase tracking-wider">
+            E2E
           </text>
 
           {/* Integration Segment */}
@@ -75,8 +79,14 @@ export function TestingPyramid({ unit, integration, e2e }: TestingPyramidProps) 
             strokeWidth="1"
             className="transition-all duration-700"
           />
-          <text x={centerX} y={iStepYBottom - 15} textAnchor="middle" className="text-[12px] font-black fill-white pointer-events-none uppercase tracking-tighter">
-            Integration ({Math.round(integrationPerc)}%)
+          {/* INT Percent (Inside) */}
+          <text x={centerX} y={iStepYBottom - 18} textAnchor="middle" className="text-[14px] font-black fill-white pointer-events-none tracking-tight">
+            {Math.round(integrationPerc)}%
+          </text>
+          {/* INT Label & Line (Outside) */}
+          <line x1={centerX + iWidthBottom/1.2} y1={iStepYTop + iH/2} x2={labelX} y2={iStepYTop + iH/2} stroke="#f59e0b" strokeWidth="1" strokeDasharray="2 2" />
+          <text x={labelX + 8} y={iStepYTop + iH/2 + 4} className="text-[11px] font-bold fill-amber-400 uppercase tracking-wider">
+            INTEGRATION
           </text>
 
           {/* Unit Segment */}
@@ -91,8 +101,14 @@ export function TestingPyramid({ unit, integration, e2e }: TestingPyramidProps) 
             strokeWidth="1"
             className="transition-all duration-700"
           />
-          <text x={centerX} y={uStepYBottom - 20} textAnchor="middle" className="text-[14px] font-black fill-white pointer-events-none uppercase tracking-tighter">
-            Unit Tests ({Math.round(unitPerc)}%)
+          {/* Unit Percent (Inside) */}
+          <text x={centerX} y={uStepYBottom - 25} textAnchor="middle" className="text-[16px] font-black fill-white pointer-events-none tracking-tight">
+            {Math.round(unitPerc)}%
+          </text>
+          {/* Unit Label & Line (Outside) */}
+          <line x1={centerX + uWidthBottom/1.2} y1={uStepYTop + uH/2} x2={labelX} y2={uStepYTop + uH/2} stroke="#10b981" strokeWidth="1" strokeDasharray="2 2" />
+          <text x={labelX + 8} y={uStepYTop + uH/2 + 4} className="text-[11px] font-bold fill-emerald-400 uppercase tracking-wider">
+            UNIT
           </text>
         </svg>
       </div>
