@@ -16,6 +16,7 @@ import {
   Users,
   Loader2,
   TrendingUp,
+  Sparkles,
 } from "lucide-react";
 
 const dashboardItems = [
@@ -28,6 +29,7 @@ const dashboardItems = [
 const analyticsItems = [
   { href: "/success-rates", label: "Success Rates", icon: BarChart3, minGlobalRole: null },
   { href: "/predictive", label: "Predictive Analysis", icon: TrendingUp, minGlobalRole: null },
+  { href: "/business-value", label: "Business Value", icon: Sparkles, minGlobalRole: null },
 ];
 
 const adminItems = [

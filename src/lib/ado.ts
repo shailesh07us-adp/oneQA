@@ -1,12 +1,14 @@
-/**
- * Azure DevOps (ADO) Integration Layer
- *
- * When ADO_ORG_URL and ADO_PAT are set in .env, this module fetches
- * live data from your ADO org. Otherwise it returns realistic mock
- * data so the dashboard works out-of-the-box for demos.
- */
-
-import { forecastTimeSeries } from "./stats";
+import {
+  forecastTimeSeries,
+  calculateReleaseReadiness,
+  calculateTestStability,
+  calculateResolutionEfficiency,
+  calculateRiskExposure,
+  calculateAutomationROI,
+  calculateEscapedDefectRate,
+  calculateMTTRStatus,
+  calculatePyramidHealth,
+} from "./stats";
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -22,10 +24,10 @@ export interface AdoDefect {
 }
 
 export interface DefectTrendPoint {
-  date: string;  // ISO date string (YYYY-MM-DD)
+  date: string; // ISO date string (YYYY-MM-DD)
   opened: number;
   resolved: number;
-  isForecast?: boolean;  // true for predicted future points
+  isForecast?: boolean; // true for predicted future points
 }
 
 export interface TestPlanSummary {
@@ -67,6 +69,47 @@ export interface AdoDashboardData {
       insight: string;
     }[];
   };
+  stability: {
+    score: number;
+    label: string;
+    color: string;
+  };
+  efficiency: {
+    score: number;
+    label: string;
+    color: string;
+  };
+  threatLevel: {
+    score: number;
+    label: string;
+    color: string;
+  };
+  businessValue: {
+    roi: {
+      hoursSaved: number;
+      moneySaved: number;
+      formattedMoney: string;
+    };
+    escapedDefects: {
+      rate: number;
+      label: string;
+      color: string;
+      prodCount: number;
+      qaCount: number;
+    };
+    mttr: {
+      avgDays: number;
+      label: string;
+      color: string;
+    };
+    pyramid: {
+      unitPerc: number;
+      integrationPerc: number;
+      e2ePerc: number;
+      isHealthy: boolean;
+      recommendation: string;
+    };
+  };
   isLive: boolean;
 }
 
@@ -103,14 +146,14 @@ async function fetchFromAdo(path: string): Promise<any> {
 
 async function fetchLiveDefects(): Promise<AdoDefect[]> {
   const project = ADO_PROJECT || "_";
-  
+
   // WIQL query to get bugs
   const wiqlBody = {
-    query: `SELECT [System.Id], [System.Title], [Microsoft.VSTS.Common.Severity], 
-            [System.State], [System.AssignedTo], [System.CreatedDate], 
+    query: `SELECT [System.Id], [System.Title], [Microsoft.VSTS.Common.Severity],
+            [System.State], [System.AssignedTo], [System.CreatedDate],
             [System.TeamProject], [System.AreaPath]
-            FROM workitems 
-            WHERE [System.WorkItemType] = 'Bug' 
+            FROM workitems
+            WHERE [System.WorkItemType] = 'Bug'
             AND [System.State] <> 'Removed'
             ORDER BY [System.CreatedDate] DESC`,
   };
@@ -162,10 +205,38 @@ function generateMockDefectTrend(): DefectTrendPoint[] {
 
 function generateMockTestPlans(): TestPlanSummary[] {
   return [
-    { name: "Sprint 24 Regression", project: "Payment Gateway", totalTests: 342, automated: 298, manual: 44, passedPercent: 94 },
-    { name: "API Integration Tests", project: "Auth Service", totalTests: 187, automated: 187, manual: 0, passedPercent: 98 },
-    { name: "E2E User Flows", project: "Web Portal", totalTests: 156, automated: 112, manual: 44, passedPercent: 87 },
-    { name: "Performance Suite", project: "Core Platform", totalTests: 64, automated: 64, manual: 0, passedPercent: 91 },
+    {
+      name: "Sprint 24 Regression",
+      project: "Payment Gateway",
+      totalTests: 342,
+      automated: 298,
+      manual: 44,
+      passedPercent: 94,
+    },
+    {
+      name: "API Integration Tests",
+      project: "Auth Service",
+      totalTests: 187,
+      automated: 187,
+      manual: 0,
+      passedPercent: 98,
+    },
+    {
+      name: "E2E User Flows",
+      project: "Web Portal",
+      totalTests: 156,
+      automated: 112,
+      manual: 44,
+      passedPercent: 87,
+    },
+    {
+      name: "Performance Suite",
+      project: "Core Platform",
+      totalTests: 64,
+      automated: 64,
+      manual: 0,
+      passedPercent: 91,
+    },
   ];
 }
 
@@ -176,7 +247,12 @@ function generateMockProjectHealth(): AdoDashboardData["projectHealth"] {
     { project: "Web Portal", passRate: 72, activeBugs: 8, health: "red" },
     { project: "Core Platform", passRate: 85, activeBugs: 5, health: "yellow" },
     { project: "Mobile API", passRate: 91, activeBugs: 2, health: "green" },
-    { project: "Reporting Engine", passRate: 78, activeBugs: 6, health: "yellow" },
+    {
+      project: "Reporting Engine",
+      passRate: 78,
+      activeBugs: 6,
+      health: "yellow",
+    },
   ];
 }
 
@@ -186,10 +262,10 @@ function getMockData(): AdoDashboardData {
   const totalResolved = trend.reduce((s, t) => s + t.resolved, 0);
 
   // Generate 7-day forecast
-  const openedForecast = forecastTimeSeries(trend.map(t => t.opened), 7);
-  const resolvedForecast = forecastTimeSeries(trend.map(t => t.resolved), 7);
+  const openedForecast = forecastTimeSeries(trend.map((t) => t.opened), 7);
+  const resolvedForecast = forecastTimeSeries(trend.map((t) => t.resolved), 7);
   const lastDate = new Date(trend[trend.length - 1].date);
-  
+
   const trendWithForecast = [...trend];
   for (let i = 0; i < 7; i++) {
     const d = new Date(lastDate);
@@ -203,11 +279,10 @@ function getMockData(): AdoDashboardData {
   }
 
   // Release Readiness (mock)
-  const { calculateReleaseReadiness } = require("./stats");
   const readiness = calculateReleaseReadiness({
     passRate: 90,
     passRatePrevious: 87,
-    activeP1P2Bugs: 16,  // p1 + p2
+    activeP1P2Bugs: 16, // p1 + p2
     flakyTestRatio: 0.08,
     testPlanCompletion: 92,
   });
@@ -226,6 +301,22 @@ function getMockData(): AdoDashboardData {
     testPlans: generateMockTestPlans(),
     projectHealth: generateMockProjectHealth(),
     releaseReadiness: readiness,
+    stability: calculateTestStability(12, 150),
+    efficiency: calculateResolutionEfficiency(58, 52),
+    threatLevel: calculateRiskExposure(16, 4, 12),
+    businessValue: {
+      roi: calculateAutomationROI(15420, 10, 65), // 15k executions, 10m each
+      escapedDefects: {
+        ...calculateEscapedDefectRate(8, 142),
+        prodCount: 8,
+        qaCount: 142
+      },
+      mttr: {
+        avgDays: 2.4,
+        ...calculateMTTRStatus(2.4)
+      },
+      pyramid: calculatePyramidHealth(640, 210, 85)
+    },
     isLive: false,
   };
 }
@@ -294,6 +385,15 @@ export async function getAdoDashboardData(): Promise<AdoDashboardData> {
         label: "Needs Attention",
         color: "#f59e0b",
         breakdown: [],
+      },
+      stability: calculateTestStability(0, 0),
+      efficiency: calculateResolutionEfficiency(0, 0),
+      threatLevel: calculateRiskExposure(0, 0, 0),
+      businessValue: {
+        roi: { hoursSaved: 0, moneySaved: 0, formattedMoney: "$0" },
+        escapedDefects: { rate: 0, label: "N/A", color: "#64748b", prodCount: 0, qaCount: 0 },
+        mttr: { avgDays: 0, label: "N/A", color: "#64748b" },
+        pyramid: { unitPerc: 0, integrationPerc: 0, e2ePerc: 0, isHealthy: true, recommendation: "" }
       },
       isLive: true,
     };

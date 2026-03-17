@@ -13,6 +13,7 @@ import {
 import { AdoDefectChart } from "@/components/AdoDefectChart";
 import { ProjectHeatmap } from "@/components/ProjectHeatmap";
 import { ReleaseReadinessGauge } from "@/components/ReleaseReadinessGauge";
+import { ExecutiveGauge } from "@/components/ExecutiveGauge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PredictiveAnalysisPage() {
@@ -56,6 +57,11 @@ export default function PredictiveAnalysisPage() {
               <div className="glass rounded-xl p-6 flex justify-center">
                 <Skeleton className="w-40 h-24 rounded-xl" />
               </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-40 rounded-xl" />
+                ))}
+              </div>
               <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
                   <div key={i} className="glass rounded-xl p-4">
@@ -64,19 +70,11 @@ export default function PredictiveAnalysisPage() {
                   </div>
                 ))}
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="glass rounded-xl p-5">
-                  <Skeleton className="w-full h-[250px]" />
-                </div>
-                <div className="glass rounded-xl p-5">
-                  <Skeleton className="w-full h-[250px]" />
-                </div>
-              </div>
             </div>
           ) : adoData ? (
             <div className="space-y-4 fade-in-up">
 
-              {/* Row 1: Release Readiness Gauge — centered, horizontal layout */}
+              {/* Row 1: Primary Release Readiness Gauge */}
               <div className="glass rounded-xl p-6 flex flex-col items-center">
                 <ReleaseReadinessGauge
                   score={adoData.releaseReadiness.score}
@@ -87,7 +85,34 @@ export default function PredictiveAnalysisPage() {
                 />
               </div>
 
-              {/* Row 2: Severity KPIs — single horizontal row */}
+              {/* Row 2: Secondary Executive Gauges */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <ExecutiveGauge
+                  title="Test Stability Index"
+                  description="Trust score for automated suites"
+                  score={adoData.stability.score}
+                  label={adoData.stability.label}
+                  color={adoData.stability.color}
+                />
+                <ExecutiveGauge
+                  title="Resolution Efficiency"
+                  description="Resolved vs New (Last 30d)"
+                  score={adoData.efficiency.score}
+                  label={adoData.efficiency.label}
+                  color={adoData.efficiency.color}
+                />
+                <ExecutiveGauge
+                  title="Risk Exposure Level"
+                  description="Composite threat probability"
+                  score={adoData.threatLevel.score}
+                  label={adoData.threatLevel.label}
+                  color={adoData.threatLevel.color}
+                  suffix=""
+                  invertColor={true}
+                />
+              </div>
+
+              {/* Row 3: Severity KPIs — single horizontal row */}
               <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
                 <SeverityCard label="P1 Critical" value={adoData.defects.p1} color="rose" />
                 <SeverityCard label="P2 High" value={adoData.defects.p2} color="amber" />

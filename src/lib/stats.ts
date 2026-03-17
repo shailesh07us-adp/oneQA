@@ -124,3 +124,195 @@ export function calculateReleaseReadiness(input: {
 
   return { score, label, color, breakdown };
 }
+
+/**
+ * Calculates a Test Stability Index (0-100)
+ * Higher is better. Based on flakiness/intermittent failure rate.
+ */
+export function calculateTestStability(flakyTests: number, totalTests: number): {
+  score: number;
+  label: string;
+  color: string;
+} {
+  const stabilityPerc = totalTests > 0 ? ((totalTests - flakyTests) / totalTests) * 100 : 100;
+  
+  let label = "High Trust";
+  let color = "#22c55e"; // emerald
+
+  if (stabilityPerc < 75) {
+    label = "Unreliable";
+    color = "#ef4444"; // rose
+  } else if (stabilityPerc < 92) {
+    label = "Warning";
+    color = "#f59e0b"; // amber
+  }
+
+  return { score: Math.round(stabilityPerc), label, color };
+}
+
+/**
+ * Calculates Defect Resolution Efficiency (0-200+)
+ * Target is > 100% (fixing more than you find)
+ */
+export function calculateResolutionEfficiency(resolved: number, opened: number): {
+  score: number;
+  label: string;
+  color: string;
+} {
+  if (opened === 0) return { score: 100, label: "Healthy", color: "#22c55e" };
+  
+  const efficiency = (resolved / opened) * 100;
+  
+  let label = "Team Keeping Up";
+  let color = "#22c55e";
+
+  if (efficiency < 80) {
+    label = "Backlog Growing";
+    color = "#ef4444";
+  } else if (efficiency < 100) {
+    label = "Near Capacity";
+    color = "#f59e0b";
+  }
+
+  return { score: Math.round(efficiency), label, color };
+}
+
+/**
+ * Calculates a composite Risk Exposure Level (0-100)
+ * LOWER IS BETTER. We invert it for the gauge display later if needed, 
+ * or show as a "Threat Level".
+ */
+export function calculateRiskExposure(
+  p1Count: number, 
+  regressionFailures: number, 
+  defectAgeDays: number
+): {
+  score: number;
+  label: string;
+  color: string;
+} {
+  // Score 0 (Safe) to 100 (Critical Danger)
+  // Weights: P1s (50%), Regression (30%), Age (20%)
+  const p1Weight = Math.min(p1Count * 10, 50);
+  const regWeight = Math.min(regressionFailures * 15, 30);
+  const ageWeight = Math.min(defectAgeDays / 2, 20);
+  
+  const totalRisk = p1Weight + regWeight + ageWeight;
+  
+  let label = "Safe";
+  let color = "#22c55e";
+
+  if (totalRisk > 70) {
+    label = "Critical Threat";
+    color = "#ef4444";
+  } else if (totalRisk > 35) {
+    label = "Elevated Risk";
+    color = "#f59e0b";
+  }
+
+  return { score: Math.round(totalRisk), label, color };
+}
+
+/**
+ * Calculates Automation ROI
+ * Returns savings in hours and estimated dollar value.
+ */
+export function calculateAutomationROI(
+  totalExecutions: number,
+  avgManualTimePerTestMinutes: number,
+  avgHourlyRate: number = 65
+): {
+  hoursSaved: number;
+  moneySaved: number;
+  formattedMoney: string;
+} {
+  const minutesSaved = totalExecutions * avgManualTimePerTestMinutes;
+  const hoursSaved = Math.round(minutesSaved / 60);
+  const moneySaved = hoursSaved * avgHourlyRate;
+  
+  const formattedMoney = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0
+  }).format(moneySaved);
+
+  return { hoursSaved, moneySaved, formattedMoney };
+}
+
+/**
+ * Calculates Escaped Defect Rate
+ * Higher is worse. Percentage of bugs found in Prod vs Total.
+ */
+export function calculateEscapedDefectRate(prodBugs: number, qaBugs: number): {
+  rate: number;
+  label: string;
+  color: string;
+} {
+  const total = prodBugs + qaBugs;
+  if (total === 0) return { rate: 0, label: "No bugs found", color: "#22c55e" };
+  
+  const rate = (prodBugs / total) * 100;
+  
+  let label = "World Class";
+  let color = "#22c55e";
+
+  if (rate > 15) {
+    label = "Critical Leaks";
+    color = "#ef4444";
+  } else if (rate > 5) {
+    label = "Needs Review";
+    color = "#f59e0b";
+  }
+
+  return { rate: Math.round(rate), label, color };
+}
+
+/**
+ * Calculates Mean Time to Repair (MTTR) status
+ */
+export function calculateMTTRStatus(avgDays: number): {
+  label: string;
+  color: string;
+} {
+  if (avgDays <= 1) return { label: "Elite", color: "#22c55e" };
+  if (avgDays <= 3) return { label: "Good", color: "#3b82f6" };
+  if (avgDays <= 7) return { label: "Average", color: "#f59e0b" };
+  return { label: "Slow", color: "#ef4444" };
+}
+
+/**
+ * Calculates Testing Pyramid Health
+ */
+export function calculatePyramidHealth(
+  unit: number,
+  integration: number,
+  e2e: number
+): {
+  unitPerc: number;
+  integrationPerc: number;
+  e2ePerc: number;
+  isHealthy: boolean;
+  recommendation: string;
+} {
+  const total = unit + integration + e2e;
+  if (total === 0) return { unitPerc: 0, integrationPerc: 0, e2ePerc: 0, isHealthy: true, recommendation: "No tests yet" };
+
+  const unitPerc = (unit / total) * 100;
+  const integrationPerc = (integration / total) * 100;
+  const e2ePerc = (e2e / total) * 100;
+
+  // Ideal: Unit (60-70%), Integration (20-30%), E2E (10%)
+  const isHealthy = unitPerc > 50 && e2ePerc < 20;
+  
+  let recommendation = "Structure looks good.";
+  if (unitPerc < 40) recommendation = "Focus on adding more Unit tests.";
+  else if (e2ePerc > 25) recommendation = "Reduce dependency on slow E2E tests.";
+
+  return {
+    unitPerc: Math.round(unitPerc),
+    integrationPerc: Math.round(integrationPerc),
+    e2ePerc: Math.round(e2ePerc),
+    isHealthy,
+    recommendation
+  };
+}
