@@ -112,14 +112,14 @@ export default function CommandCenterPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <IntelligenceCard 
                   label="Stability Score" 
-                  value={`${metrics.stability}%`} 
+                  value={`${Math.round(metrics.stability)}%`} 
                   desc="Recent execution pass rate" 
                   icon={<ShieldCheck className="w-5 h-5" />} 
                   color="indigo"
                 />
                 <IntelligenceCard 
                   label="Surface Coverage" 
-                  value={`${metrics.coverage}%`} 
+                  value={`${Math.round(metrics.coverage)}%`} 
                   desc="Regression scope footprint" 
                   icon={<Database className="w-5 h-5" />} 
                   color="purple"
