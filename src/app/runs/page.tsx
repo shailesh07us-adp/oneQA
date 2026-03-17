@@ -242,11 +242,18 @@ export default function RunsPage() {
                                 </button>
 
                                 <div className="flex items-center gap-4">
-                                  {/* Local "Intelligence" badges */}
+                                  {/* Actionable "Intelligence" badges */}
                                   {suiteFailed > 0 && (
-                                    <span className="px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20 text-[9px] font-black text-rose-400 uppercase tracking-widest animate-pulse">
-                                      Action Required
-                                    </span>
+                                    <button 
+                                      onClick={() => isCollapsed && toggleSuite(suite.id)}
+                                      className="px-2.5 py-1 rounded bg-rose-500/10 border border-rose-500/20 text-[9px] font-black text-rose-400 uppercase tracking-widest animate-pulse hover:bg-rose-500/20 transition-all flex items-center gap-1.5"
+                                    >
+                                      <span className="relative flex h-1.5 w-1.5">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-rose-500"></span>
+                                      </span>
+                                      Investigate {suiteFailed} {suiteFailed === 1 ? 'Failure' : 'Failures'}
+                                    </button>
                                   )}
                                   <div className="h-4 w-px bg-white/5" />
                                   <span className="text-[10px] font-mono text-slate-600 uppercase tracking-widest">
@@ -277,7 +284,9 @@ export default function RunsPage() {
                                       </div>
                                       <div className="flex items-center gap-3">
                                         {test.status === 'failed' && (
-                                          <span className="text-[8px] font-black text-rose-500/50 uppercase tracking-widest px-1.5 py-0.5 border border-rose-500/10 rounded">Regression</span>
+                                          <button className="text-[8px] font-black text-white uppercase tracking-widest px-2 py-1 bg-rose-600 rounded hover:bg-rose-500 transition-colors shadow-lg shadow-rose-900/20 active:scale-95">
+                                            Triage Failure
+                                          </button>
                                         )}
                                         <span className="text-[10px] font-mono text-slate-600">{(test.duration / 1000).toFixed(2)}s</span>
                                       </div>
