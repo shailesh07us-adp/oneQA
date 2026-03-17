@@ -19,10 +19,11 @@ import {
   Sparkles,
   AlertTriangle,
 } from "lucide-react";
+import { clusterFailures } from "@/lib/intelligence";
 
 const dashboardItems = [
   { href: "/", label: "Overview", icon: Activity, minGlobalRole: null },
-  { href: "/triage", label: "Triage Center", icon: AlertTriangle, minGlobalRole: null, badge: "3" },
+  { href: "/triage", label: "Triage Center", icon: AlertTriangle, minGlobalRole: null },
   { href: "/runs", label: "Test Runs", icon: CheckCircle2, minGlobalRole: null },
   { href: "/projects", label: "Projects", icon: FolderOpen, minGlobalRole: null },
   { href: "/performance", label: "Performance", icon: Clock, minGlobalRole: null },
@@ -44,11 +45,28 @@ export default function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
+  const [triageCount, setTriageCount] = useState<number | null>(null);
 
   useEffect(() => {
     // Reset navigating state when pathname changes (navigation complete)
     setNavigatingTo(null);
   }, [pathname]);
+
+  useEffect(() => {
+    async function fetchTriageCount() {
+      try {
+        const res = await fetch("/api/runs?limit=100&status=failed");
+        if (res.ok) {
+          const data = await res.json();
+          const clusters = clusterFailures(data.runs || []);
+          setTriageCount(clusters.length);
+        }
+      } catch (e) {
+        console.error("Sidebar triage count fetch failed", e);
+      }
+    }
+    fetchTriageCount();
+  }, [pathname]); // Refresh on navigation so badge stays in sync
 
   const userName = session?.user?.name || session?.user?.email || "User";
   const userRole = ((session?.user as any)?.globalRole || "USER") as string;
@@ -118,7 +136,12 @@ export default function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         <p className="px-3 pb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Dashboard</p>
-        {dashboardItems.map(renderNavItem)}
+        {dashboardItems.map(item => {
+          const badge = item.label === "Triage Center" && triageCount !== null && triageCount > 0 
+            ? triageCount.toString() 
+            : (item as any).badge;
+          return renderNavItem({ ...item, badge });
+        })}
 
         <div className="pt-6">
           <p className="px-3 pb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Intelligence</p>

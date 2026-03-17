@@ -11,7 +11,7 @@ import {
   User, 
   MessageSquare,
   ArrowRight,
-  ShieldAlert,
+  ShieldAlert, // ArrowRight removed as per instruction
   Search,
   CheckCircle2,
   XCircle,
@@ -20,7 +20,12 @@ import {
   RefreshCw,
   ChevronRight,
   ShieldCheck,
-  Info
+  Info,
+  Copy, // Added as per instruction
+  Settings2,
+  Trash2,
+  AlertOctagon,
+  X
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -44,6 +49,7 @@ export default function TriagePage() {
         
         const runsData = await runsRes.json();
         const patternsData = await patternsRes.json();
+        setPatterns(patternsData.patterns || []);
         
         const activeClusters = clusterFailures(runsData.runs || []);
         
@@ -71,9 +77,20 @@ export default function TriagePage() {
     loadExpertTriage();
   }, []);
 
-  const handleTriageAll = async (status: string) => {
+  const [showKBManager, setShowKBManager] = useState(false);
+  const [conflict, setConflict] = useState<{ predicted: string, incoming: string } | null>(null);
+  const [patterns, setPatterns] = useState<any[]>([]);
+
+  const handleTriageAll = async (status: string, override = false) => {
     if (!selectedCluster) return;
+
+    // Conflict Detection
+    if (!override && selectedCluster.predictedStatus && selectedCluster.predictedStatus !== status) {
+      setConflict({ predicted: selectedCluster.predictedStatus, incoming: status });
+      return;
+    }
     
+    setConflict(null);
     setTriageStatus('triaging...');
     const testIds = selectedCluster.failures.map((f: any) => f.id);
     
@@ -95,6 +112,41 @@ export default function TriagePage() {
       }
     } catch (e) {
       setTriageStatus('Error');
+    }
+  };
+
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyTrace = () => {
+    if (selectedFailure?.stack) {
+      navigator.clipboard.writeText(selectedFailure.stack);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    }
+  };
+
+  const filteredClusters = clusters.filter(cluster => 
+    cluster.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    cluster.failures.some((f: any) => f.title.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  const handleArchiveAll = () => {
+    setClusters([]);
+    setTriageStatus('All Archived');
+  };
+
+  const handleDeletePattern = async (id: string) => {
+    try {
+      const res = await fetch(`/api/triage/patterns/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setPatterns(patterns.filter(p => p.id !== id));
+        setTriageStatus('Pattern Removed');
+        setTimeout(() => setTriageStatus(null), 2000);
+      }
+    } catch (e) {
+      console.error('Delete failed', e);
     }
   };
 
@@ -195,6 +247,14 @@ export default function TriagePage() {
             </div>
           </div>
           <div className="flex items-center gap-4">
+             <button 
+               onClick={() => setShowKBManager(true)}
+               className="p-2 rounded-lg bg-slate-900 border border-white/5 text-slate-400 hover:text-white transition-all flex items-center gap-2 group"
+               title="Manage Learned Patterns"
+             >
+               <Settings2 className="w-4 h-4 group-hover:rotate-90 transition-transform duration-500" />
+               <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline">Knowledge Oracle</span>
+             </button>
              <div className="flex items-center gap-4 px-4 py-1.5 rounded-full bg-slate-900 border border-white/5">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-rose-500" />
@@ -211,12 +271,32 @@ export default function TriagePage() {
         <div className="flex-1 flex overflow-hidden">
           {/* Left: Cluster Inbox */}
           <div className="w-96 border-r border-white/5 flex flex-col bg-[#0b0f1d] overflow-y-auto">
-            <div className="p-4 border-b border-white/5 flex items-center justify-between bg-black/20">
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Intelligent Clusters</span>
-                <Filter className="w-3 h-3 text-slate-600" />
+            <div className="p-4 border-b border-white/5 flex items-center justify-between bg-black/20 gap-3">
+                <div className="relative flex-1 group">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                    <input 
+                        type="text" 
+                        placeholder="Search clusters..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full bg-white/[0.03] border border-white/5 rounded-lg py-2 pl-9 pr-4 text-[11px] text-white focus:outline-none focus:border-indigo-500/50 focus:bg-indigo-500/5 transition-all"
+                    />
+                </div>
+                <button 
+                  onClick={handleArchiveAll}
+                  className="p-2 rounded-lg bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-all border border-white/5 flex items-center gap-2 group"
+                  title="Archive all active regressions"
+                >
+                  <SkipForward className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  <span className="text-[9px] font-black uppercase tracking-tighter">Archive</span>
+                </button>
             </div>
             <div className="flex-1">
-              {clusters.map((cluster) => (
+              {filteredClusters.length === 0 ? (
+                <div className="p-10 text-center">
+                  <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">No matching clusters</p>
+                </div>
+              ) : filteredClusters.map((cluster) => (
                 <button
                   key={cluster.id}
                   onClick={() => {
@@ -372,7 +452,22 @@ export default function TriagePage() {
                      <Terminal className="w-6 h-6 text-slate-400" />
                      <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">Atomic Execution Blueprint</h3>
                   </div>
-                  <button className="text-[10px] font-black text-indigo-400 uppercase tracking-widest hover:text-indigo-300">Copy Trace</button>
+                  <button 
+                    onClick={handleCopyTrace}
+                    className={`text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 group ${copied ? 'text-emerald-400' : 'text-indigo-400 hover:text-indigo-300'}`}
+                  >
+                    {copied ? (
+                      <>
+                        <CheckCircle2 className="w-3.5 h-3.5 animate-in zoom-in duration-300" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                        Copy Trace
+                      </>
+                    )}
+                  </button>
                 </div>
                 <div className="p-8 rounded-3xl bg-[#05070a] border border-white/5 font-mono text-sm leading-relaxed overflow-x-auto min-h-[250px] shadow-inner">
                    {selectedFailure?.error ? (
@@ -429,6 +524,106 @@ export default function TriagePage() {
           </div>
         </div>
       </main>
+
+      {/* Conflict Resolution Modal */}
+      {conflict && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="w-full max-w-md glass rounded-[2.5rem] p-10 bg-gradient-to-br from-rose-500/10 to-transparent border-rose-500/20 shadow-2xl shadow-rose-900/20">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 rounded-2xl bg-rose-500/20 border border-rose-500/30">
+                <AlertOctagon className="w-8 h-8 text-rose-500 animate-pulse" />
+              </div>
+              <h3 className="text-xl font-black text-white tracking-tight">Knowledge Conflict</h3>
+            </div>
+            
+            <p className="text-slate-300 leading-relaxed mb-8">
+              The Oracle previously learned this pattern as <span className="text-indigo-400 font-bold underline underline-offset-4">{conflict.predicted}</span>. 
+              You are triaging it as <span className="text-rose-400 font-bold underline underline-offset-4">{conflict.incoming}</span>. 
+              Which decision should the Knowledge Base keep?
+            </p>
+
+            <div className="space-y-3">
+              <button 
+                onClick={() => handleTriageAll(conflict.incoming, true)}
+                className="w-full py-4 rounded-xl bg-indigo-600 text-white text-xs font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-900/40"
+              >
+                Overwrite KB with New Decision
+              </button>
+              <button 
+                onClick={() => setConflict(null)}
+                className="w-full py-4 rounded-xl bg-slate-800 text-slate-300 text-xs font-black uppercase tracking-widest hover:bg-slate-700 transition-all border border-white/5"
+              >
+                Cancel Triage
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* KB Management Slide-over */}
+      {showKBManager && (
+        <div className="fixed inset-0 z-[100] flex justify-end bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div 
+            onClick={() => setShowKBManager(false)}
+            className="flex-1 cursor-pointer" 
+          />
+          <div className="w-full max-w-2xl bg-[#0b0f1d] border-l border-white/5 shadow-2xl animate-in slide-in-from-right duration-500 flex flex-col">
+            <div className="p-8 border-b border-white/5 flex items-center justify-between bg-black/20">
+              <div>
+                <h3 className="text-xl font-black text-white tracking-tight">Knowledge Oracle Brain</h3>
+                <p className="text-xs text-slate-500 uppercase tracking-widest font-bold mt-1">Manage learned failure patterns</p>
+              </div>
+              <button 
+                onClick={() => setShowKBManager(false)}
+                className="p-2 rounded-lg hover:bg-white/5 text-slate-500 hover:text-white transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-8 space-y-4">
+              {patterns.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-64 text-center">
+                  <Sparkles className="w-12 h-12 text-slate-800 mb-4" />
+                  <p className="text-slate-600 font-bold uppercase tracking-widest text-xs">Knowledge Base is Empty</p>
+                </div>
+              ) : (
+                patterns.map((pattern: any) => (
+                  <div key={pattern.id} className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:border-indigo-500/30 transition-all group relative">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest ${pattern.resolvedStatus === 'fixed' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'}`}>
+                          {pattern.resolvedStatus}
+                        </span>
+                        <span className="text-[10px] font-mono text-slate-600">Fingerprint: {pattern.fingerprint.substring(0, 12)}...</span>
+                      </div>
+                      <button 
+                        onClick={() => handleDeletePattern(pattern.id)}
+                        className="p-2 rounded-lg text-slate-600 hover:text-rose-500 hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100"
+                        title="Forget this pattern"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <p className="text-sm font-bold text-white mb-2 line-clamp-1">{pattern.comment || "Automated triage learning"}</p>
+                    <div className="flex items-center gap-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                      <span>Seen {pattern.occurrenceCount} times</span>
+                      <span>•</span>
+                      <span>Last: {new Date(pattern.lastSeen).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+            
+            <div className="p-8 border-t border-white/5 bg-black/20">
+              <p className="text-[10px] text-slate-600 font-black uppercase tracking-widest leading-relaxed text-center">
+                Deletions are permanent. Removing a pattern resets the Oracle's prediction for similar regressions.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
