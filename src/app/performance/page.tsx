@@ -82,8 +82,8 @@ export default async function PerformancePage() {
         <div className="p-8 space-y-6 max-w-7xl mx-auto w-full">
           {/* Duration KPIs */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 fade-in-up">
-            <DurationCard label="Average" value={`${avgDuration}s`} icon={<Clock className="w-4 h-4" />} color="indigo" />
-            <DurationCard label="Median" value={`${medianDuration}s`} icon={<Timer className="w-4 h-4" />} color="purple" />
+            <DurationCard label="Average" value={`${avgDuration}s`} icon={<Clock className="w-4 h-4" />} color="sky" />
+            <DurationCard label="Median" value={`${medianDuration}s`} icon={<Timer className="w-4 h-4" />} color="amber" />
             <DurationCard label="Fastest" value={`${minDuration}s`} icon={<ArrowDown className="w-4 h-4" />} color="emerald" />
             <DurationCard label="Slowest" value={`${maxDuration}s`} icon={<ArrowUp className="w-4 h-4" />} color="rose" />
           </div>
@@ -180,20 +180,26 @@ export default async function PerformancePage() {
   );
 }
 
-function DurationCard({ label, value, icon, color }: { label: string; value: string; icon: React.ReactNode; color: string }) {
-  const map: Record<string, string> = {
-    indigo: "from-indigo-500/10 text-indigo-400 border-indigo-500/20 group-hover:from-indigo-500/25",
-    purple: "from-purple-500/10 text-purple-400 border-purple-500/20 group-hover:from-purple-500/25",
-    emerald: "from-emerald-500/10 text-emerald-400 border-emerald-500/20 group-hover:from-emerald-500/25",
-    rose: "from-rose-500/10 text-rose-400 border-rose-500/20 group-hover:from-rose-500/25",
+function DurationCard({ label, value, icon, color }: { label: string; value: string; icon: React.ReactNode; color: 'emerald' | 'rose' | 'sky' | 'amber' }) {
+  const map = {
+    emerald: "border-emerald-500/80 shadow-[0_-12px_20px_-8px_rgba(52,211,153,0.25)]",
+    rose: "border-rose-500/80 shadow-[0_-12px_20px_-8px_rgba(244,63,94,0.25)]",
+    sky: "border-sky-500/80 shadow-[0_-12px_20px_-8px_rgba(14,165,233,0.25)]",
+    amber: "border-amber-500/80 shadow-[0_-12px_20px_-8px_rgba(245,158,11,0.25)]",
   };
+
   return (
-    <div className="glass rounded-2xl p-5 group transition-all relative overflow-hidden border-white/[0.03] bg-gradient-to-br from-transparent to-transparent hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/5 hover:to-white/[0.01]">
-      <div className="flex items-center gap-3 mb-4">
-        <div className={`p-2 rounded-lg bg-gradient-to-br border shadow-sm transition-all duration-300 group-hover:scale-110 ${map[color]}`}>{icon}</div>
-        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest group-hover:text-slate-400 transition-colors">{label}</span>
+    <div className={`glass rounded-[2rem] p-7 border-t-4 transition-all duration-500 group hover:-translate-y-1 ${map[color]}`}>
+      <div className="flex items-center justify-between mb-6">
+        <div className="p-2 rounded-xl bg-slate-900/50 border border-white/5 transition-transform group-hover:scale-110 duration-500">
+          {icon}
+        </div>
+        <span className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Detailed</span>
       </div>
-      <p className="text-2xl font-black text-white font-mono tracking-tighter transition-transform group-hover:translate-x-1">{value}</p>
+      <div>
+        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">{label}</p>
+        <p className="text-4xl font-black text-white tracking-tighter group-hover:scale-105 transition-transform origin-left duration-500">{value}</p>
+      </div>
     </div>
   );
 }

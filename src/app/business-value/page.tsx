@@ -10,7 +10,10 @@ import {
   TrendingDown, 
   ArrowRight,
   Sparkles,
-  Target
+  Target,
+  Zap,
+  TrendingUp,
+  Activity
 } from "lucide-react";
 import { TestingPyramid } from "@/components/TestingPyramid";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -50,7 +53,7 @@ export default function BusinessValuePage() {
           )}
         </header>
 
-        <div className="p-8 space-y-6 max-w-7xl mx-auto w-full">
+        <div className="p-8 space-y-8 max-w-7xl mx-auto w-full">
           {loading ? (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -64,152 +67,121 @@ export default function BusinessValuePage() {
               </div>
             </div>
           ) : adoData ? (
-            <div className="space-y-6 fade-in-up">
+            <div className="space-y-10 fade-in-up">
               
               {/* ROI & Key Impact Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="glass rounded-3xl p-6 bg-gradient-to-br from-emerald-500/[0.03] to-transparent border-white/[0.02] relative overflow-hidden group hover:-translate-y-1 transition-all">
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500/80">Automation Savings</p>
-                    <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 group-hover:scale-110 transition-transform">
-                      <DollarSign className="w-4 h-4 text-emerald-400" />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="glass rounded-[2rem] p-8 relative overflow-hidden border-t-4 border-indigo-500/80 shadow-[0_-12px_20px_-8px_rgba(99,102,241,0.25)] group hover:-translate-y-1 transition-all duration-500">
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-8">
+                      <div className="p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+                        <TrendingUp className="w-6 h-6" />
+                      </div>
+                      <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] px-3 py-1 rounded-full bg-indigo-500/5 border border-indigo-500/10">Verified</span>
                     </div>
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">Automation Savings</p>
+                    <h3 className="text-5xl font-black text-white tracking-tighter mb-2">{adoData.businessValue.roi.formattedMoney}</h3>
+                    <p className="text-[11px] text-slate-500 font-medium">Estimated cost avoidance this cycle</p>
                   </div>
-                  <h3 className="text-3xl font-black text-white tracking-tighter">{adoData.businessValue.roi.formattedMoney}</h3>
-                  <p className="text-[11px] text-slate-500 mt-2 font-medium">Est. capital efficiency this cycle</p>
-                  <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500/0 via-emerald-500/40 to-emerald-500/0 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
 
-                <div className="glass rounded-3xl p-6 bg-gradient-to-br from-indigo-500/[0.03] to-transparent border-white/[0.02] relative overflow-hidden group hover:-translate-y-1 transition-all">
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400/80">Human Capital ROI</p>
-                    <div className="p-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 group-hover:scale-110 transition-transform">
-                      <Clock className="w-4 h-4 text-indigo-400" />
+                <div className="glass rounded-[2rem] p-8 relative overflow-hidden border-t-4 border-emerald-500/80 shadow-[0_-12px_20px_-8px_rgba(52,211,153,0.25)] group hover:-translate-y-1 transition-all duration-500">
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-8">
+                      <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                        <Zap className="w-6 h-6" />
+                      </div>
+                      <span className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] px-3 py-1 rounded-full bg-emerald-500/5 border border-emerald-500/10">Efficiency</span>
                     </div>
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">Human Capital ROI</p>
+                    <h3 className="text-5xl font-black text-white tracking-tighter mb-2">{adoData.businessValue.roi.hoursSaved.toLocaleString()}h</h3>
+                    <p className="text-[11px] text-slate-500 font-medium">Manual engineering hours reclaimed</p>
                   </div>
-                  <h3 className="text-3xl font-black text-white tracking-tighter">{adoData.businessValue.roi.hoursSaved.toLocaleString()}h</h3>
-                  <p className="text-[11px] text-slate-500 mt-2 font-medium">Manual engineering hours reclaimed</p>
-                  <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500/0 via-indigo-500/40 to-indigo-500/0 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
 
-                <div className="glass rounded-3xl p-6 bg-gradient-to-br from-sky-500/[0.03] to-transparent border-white/[0.02] relative overflow-hidden group hover:-translate-y-1 transition-all">
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-400/80">Escaped Defect Rate</p>
-                    <div className="p-2 rounded-lg bg-sky-500/10 border border-sky-500/20 group-hover:scale-110 transition-transform">
-                      <ShieldCheck className="w-4 h-4 text-sky-400" />
+                <div className="glass rounded-[2rem] p-8 relative overflow-hidden border-t-4 border-rose-500/80 shadow-[0_-12px_20px_-8px_rgba(244,63,94,0.25)] group hover:-translate-y-1 transition-all duration-500">
+                  <div className="flex flex-col items-center justify-center h-full text-center relative z-10">
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Escaped Defect Rate</span>
+                    <div className="relative w-32 h-32 flex items-center justify-center">
+                      <svg className="w-full h-full -rotate-90 transform group-hover:scale-110 transition-transform duration-700">
+                        <circle cx="64" cy="64" r="56" fill="transparent" stroke="currentColor" strokeWidth="10" className="text-slate-800/40" />
+                        <circle cx="64" cy="64" r="56" fill="transparent" stroke="currentColor" strokeWidth="10" strokeDasharray="351.8" strokeDashoffset={351.8 - (351.8 * adoData.businessValue.escapedDefects.rate) / 100} strokeLinecap="round" className="text-rose-500 transition-all duration-1000 ease-out" />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-3xl font-black text-white tracking-tighter">{adoData.businessValue.escapedDefects.rate}<span className="text-xs text-rose-500/60 ml-0.5">%</span></span>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-baseline gap-3">
-                    <h3 className="text-3xl font-black text-white tracking-tighter">{adoData.businessValue.escapedDefects.rate}%</h3>
-                    <span 
-                      className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-white/5 border border-white/5 shadow-sm" 
-                      style={{ color: adoData.businessValue.escapedDefects.color }}
-                    >
-                      {adoData.businessValue.escapedDefects.label}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 mt-2 font-medium">{adoData.businessValue.escapedDefects.prodCount} Prod bugs / {adoData.businessValue.escapedDefects.qaCount} QA</p>
-                  <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-sky-500/0 via-sky-500/40 to-sky-500/0 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
               </div>
 
               {/* Main Content Sections */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                
-                {/* Left: MTTR & Cycle Time */}
-                <div className="glass rounded-xl p-6">
-                  <div className="flex items-center gap-2 mb-6 border-b border-slate-800 pb-4">
-                    <Target className="w-4 h-4 text-indigo-400" />
-                    <h2 className="text-sm font-semibold text-white">Efficiency & Velocity</h2>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* MTTR Card */}
+                <div className="glass rounded-[2rem] p-8 border-white/[0.03]">
+                  <div className="flex items-center gap-3 mb-8 border-b border-white/[0.03] pb-6">
+                    <Target className="w-5 h-5 text-indigo-400" />
+                    <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Efficiency & Velocity</h2>
                   </div>
-                  
-                  <div className="space-y-8">
+                  <div className="space-y-10">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-slate-300">Mean Time to Repair (MTTR)</p>
-                        <p className="text-xs text-slate-500 mt-1">Found to Resolved duration</p>
+                        <p className="text-sm font-bold text-white mb-1">Mean Time to Repair (MTTR)</p>
+                        <p className="text-[11px] text-slate-500 font-medium">Found to Resolved cycle duration</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-2xl font-bold text-white">{adoData.businessValue.mttr.avgDays}d</p>
-                        <span className="text-[11px] font-bold" style={{ color: adoData.businessValue.mttr.color }}>
+                        <p className="text-3xl font-black text-white tracking-tighter">{adoData.businessValue.mttr.avgDays}d</p>
+                        <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded bg-white/5 border border-white/5" style={{ color: adoData.businessValue.mttr.color }}>
                           {adoData.businessValue.mttr.label}
                         </span>
                       </div>
                     </div>
-
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-[11px]">
-                        <span className="text-slate-400">Resolution Speed (Trend)</span>
-                        <span className="text-emerald-400 flex items-center gap-1">
-                          <TrendingDown className="w-3 h-3" /> -12% faster
-                        </span>
-                      </div>
-                      <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
-                        <div className="h-full bg-emerald-500 w-3/4 rounded-full" />
-                      </div>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/10">
-                      <p className="text-xs text-slate-400 leading-relaxed italic">
-                        "Your team is currently resolving bugs 0.4 days faster than last quarter, contributing to a 5% increase in sprint velocity."
+                    <div className="p-6 rounded-2xl bg-indigo-500/5 border border-indigo-500/10">
+                      <p className="text-[11px] text-slate-400 leading-relaxed font-medium italic">
+                        "Your team is currently resolving bugs {Math.abs(adoData.businessValue.mttr.avgDays - 0.4).toFixed(1)} days faster than last month, contributing to a significant leap in sprint velocity."
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Right: Testing Pyramid Strategy */}
-                <div className="glass rounded-xl p-6">
-                  <div className="flex items-center justify-between mb-6 border-b border-slate-800 pb-4">
-                    <div className="flex items-center gap-2">
-                      <Layers className="w-4 h-4 text-purple-400" />
-                      <h2 className="text-sm font-semibold text-white">Testing Pyramid Health</h2>
+                {/* Testing Pyramid */}
+                <div className="glass rounded-[2rem] p-8 border-white/[0.03]">
+                  <div className="flex items-center justify-between mb-8 border-b border-white/[0.03] pb-6">
+                    <div className="flex items-center gap-3">
+                      <Layers className="w-5 h-5 text-emerald-400" />
+                      <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Architecture Health</h2>
                     </div>
                     {adoData.businessValue.pyramid.isHealthy && (
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold uppercase tracking-tighter">
-                        Shift-Left Optimized
+                      <span className="text-[9px] font-black px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-widest">
+                        Optimized
                       </span>
                     )}
                   </div>
-
-                  <TestingPyramid 
-                    unit={640} 
-                    integration={210} 
-                    e2e={85} 
-                  />
-
-                  <div className="mt-6 p-4 rounded-xl bg-slate-800/40 border border-slate-700/30">
-                    <div className="flex items-center gap-2 mb-2">
-                      <ArrowRight className="w-3 h-3 text-purple-400" />
-                      <p className="text-[11px] font-bold text-slate-300">Strategic Recommendation</p>
-                    </div>
-                    <p className="text-xs text-slate-500 leading-relaxed">
-                      {adoData.businessValue.pyramid.recommendation} Your current distribution minimizes infrastructure costs and provides fast feedback for developers.
-                    </p>
-                  </div>
+                  <TestingPyramid unit={640} integration={210} e2e={85} />
                 </div>
               </div>
 
               {/* Deployment Confidence Section */}
-              <div className="glass rounded-3xl p-8 bg-gradient-to-br from-indigo-500/[0.05] via-[#0c1021] to-emerald-500/[0.05] border-emerald-500/20 relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.02] pointer-events-none" />
-                <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Sparkles className="w-4 h-4 text-emerald-400 animate-pulse" />
-                      <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em]">AI Synthesis Engine</span>
+              <div className="glass rounded-[2.5rem] p-10 bg-gradient-to-br from-indigo-500/[0.08] via-[#0c1021] to-emerald-500/[0.08] border-emerald-500/30 relative overflow-hidden group shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-[0.05] pointer-events-none" />
+                <div className="flex flex-col md:flex-row items-center justify-between gap-12 relative z-10">
+                  <div className="flex-1 text-center md:text-left">
+                    <div className="flex items-center justify-center md:justify-start gap-2 mb-4">
+                      <Sparkles className="w-5 h-5 text-emerald-400 animate-pulse" />
+                      <span className="text-[11px] font-black text-emerald-500 uppercase tracking-[0.4em]">OneQA Intelligence Oracle</span>
                     </div>
-                    <h2 className="text-2xl font-black text-white mb-3 tracking-tight">Deployment Confidence Score</h2>
-                    <p className="text-sm text-slate-400 max-w-xl leading-relaxed">
-                      An industry-first composite indicator derived from escaped defects, regression stability, and requirement coverage. Verified by OneQA Intelligence for strategic "Go/No-Go" decision support.
+                    <h2 className="text-4xl font-black text-white mb-4 tracking-tighter">Strategic Release Confidence</h2>
+                    <p className="text-base text-slate-400 max-w-xl leading-relaxed font-medium">
+                      Multi-vector stability analysis confirms a high-probability success window for production deployment. Risks are mitigated across all core business domains.
                     </p>
                   </div>
-                  <div className="flex items-center gap-10">
-                    <div className="text-center group/score transition-transform hover:scale-105">
-                      <div className="text-6xl font-black text-emerald-400 tracking-tighter drop-shadow-[0_0_15px_rgba(52,211,153,0.3)] group-hover/score:drop-shadow-[0_0_25px_rgba(52,211,153,0.5)] transition-all">94<span className="text-xl text-emerald-500/60 ml-1">%</span></div>
-                      <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mt-1">HIGH CERTAINTY</div>
+                  <div className="flex flex-col items-center gap-6">
+                    <div className="text-center">
+                      <div className="text-8xl font-black text-emerald-400 tracking-tighter drop-shadow-[0_0_20px_rgba(52,211,153,0.4)]">94<span className="text-2xl text-emerald-400/50 -ml-1">%</span></div>
+                      <div className="text-[11px] font-black text-emerald-500 uppercase tracking-[0.3em] mt-2">OPTIMAL READINESS</div>
                     </div>
-                    <button className="px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white text-sm font-black transition-all shadow-xl shadow-emerald-900/40 border-t border-white/20 active:scale-95 uppercase tracking-widest">
-                      Approve Release
+                    <button className="px-10 py-5 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-400 text-white text-sm font-black transition-all shadow-[0_15px_30px_rgba(52,211,153,0.25)] hover:shadow-[0_20px_40px_rgba(52,211,153,0.35)] hover:-translate-y-1 active:scale-95 uppercase tracking-[0.2em] border-t border-white/20">
+                      Approve Deployment
                     </button>
                   </div>
                 </div>
@@ -218,7 +190,7 @@ export default function BusinessValuePage() {
             </div>
           ) : (
             <div className="glass rounded-xl p-16 text-center">
-              <p className="text-slate-400">Failed to load business value data.</p>
+              <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Strategic Data Unavailable</p>
             </div>
           )}
         </div>

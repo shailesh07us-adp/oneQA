@@ -156,37 +156,35 @@ export default function RunsPage() {
                 const isPassed = run.status === "passed";
 
                 return (
-                  <div key={run.id} className="glass rounded-2xl overflow-hidden fade-in-up border-white/[0.03] group hover:shadow-xl hover:shadow-indigo-500/5 transition-all" style={{ animationDelay: `${idx * 0.05}s` }}>
-                    <div className="p-5 flex items-center justify-between relative overflow-hidden">
-                      <div className={`absolute top-0 left-0 w-1 h-full ${isPassed ? 'bg-emerald-500/40' : 'bg-rose-500/40'}`} />
-                      
-                      <div className="flex items-center gap-5">
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${isPassed ? "bg-emerald-500/10 border border-emerald-500/20" : "bg-rose-500/10 border border-rose-500/20"}`}>
+                  <div key={run.id} className={`glass rounded-[2rem] overflow-hidden fade-in-up border-t-4 shadow-2xl transition-all duration-500 group hover:-translate-y-1 ${isPassed ? 'border-emerald-500/80 shadow-emerald-500/10' : 'border-rose-500/80 shadow-rose-500/10'}`} style={{ animationDelay: `${idx * 0.05}s` }}>
+                    <div className="p-6 flex items-center justify-between relative overflow-hidden">
+                      <div className="flex items-center gap-6">
+                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-500 ${isPassed ? "bg-emerald-500/10 border border-emerald-500/20" : "bg-rose-500/10 border border-rose-500/20"}`}>
                           <div className="relative">
-                            {isPassed ? <CheckCircle2 className="w-6 h-6 text-emerald-400" /> : <XCircle className="w-6 h-6 text-rose-400" />}
-                            <div className={`absolute -inset-1 rounded-full animate-pulse blur-sm ${isPassed ? 'bg-emerald-400/20' : 'bg-rose-400/20'}`} />
+                            {isPassed ? <CheckCircle2 className="w-7 h-7 text-emerald-400" /> : <XCircle className="w-7 h-7 text-rose-400" />}
+                            <div className={`absolute -inset-2 rounded-full animate-pulse blur-md ${isPassed ? 'bg-emerald-400/20' : 'bg-rose-400/20'}`} />
                           </div>
                         </div>
                         <div>
-                          <p className="text-base font-bold text-white tracking-tight">{run.project}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{relativeTime(run.startTime)}</span>
+                          <p className="text-lg font-black text-white tracking-tight">{run.project}</p>
+                          <div className="flex items-center gap-3 mt-2">
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{relativeTime(run.startTime)}</span>
                             <span className="w-1 h-1 rounded-full bg-slate-700" />
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{run.duration ? `${(run.duration / 1000).toFixed(1)}s` : "—"} Duration</span>
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{run.duration ? `${(run.duration / 1000).toFixed(1)}s` : "—"} Duration</span>
                           </div>
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-8">
                         <div className="text-right">
-                          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Environment</p>
-                          <span className="px-2.5 py-1 rounded-md text-[10px] font-black bg-slate-900 text-slate-300 border border-slate-800 uppercase tracking-widest">{run.env}</span>
+                          <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-2">Environment</p>
+                          <span className="px-3 py-1 rounded-full text-[10px] font-black bg-slate-900/50 text-slate-300 border border-white/5 uppercase tracking-widest">{run.env}</span>
                         </div>
-                        <div className="text-right border-l border-slate-800/60 pl-6">
-                          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Results</p>
-                          <div className="flex items-center gap-3 text-[11px] font-black">
-                            <span className="flex items-center gap-1.5 text-emerald-400"><CheckCircle2 className="w-3.5 h-3.5" /> {passedTests}</span>
-                            <span className="flex items-center gap-1.5 text-rose-400"><XCircle className="w-3.5 h-3.5" /> {failedTests}</span>
+                        <div className="text-right border-l border-white/5 pl-8">
+                          <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-2">Outcome</p>
+                          <div className="flex items-center gap-4 text-[12px] font-black">
+                            <span className="flex items-center gap-2 text-emerald-400"><CheckCircle2 className="w-4 h-4" /> {passedTests}</span>
+                            <span className="flex items-center gap-2 text-rose-400"><XCircle className="w-4 h-4" /> {failedTests}</span>
                           </div>
                         </div>
                       </div>
