@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Auth & Multi-tenancy ────────────────────────────────────
+
+model User {
+  id           String          @id @default(uuid())
+  email        String          @unique
+  name         String?
+  passwordHash String
+  globalRole   String          @default("USER") // ADMIN | USER
+  createdAt    DateTime        @default(now())
+  projects     Project[]
+  memberships  ProjectMember[]
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime        @updatedAt
+  archived    Boolean         @default(false)
+  ownerId     String?
+  owner       User?           @relation(fields: [ownerId], references: [id])
+  apiKeys     ApiKey[]
+  testRuns    TestRun[]
+  builds      Build[]
+  members     ProjectMember[]
+}
+
+model ProjectMember {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  role      String   @default("CONTRIBUTOR") // PROJECT_LEAD | CONTRIBUTOR
+  createdAt DateTime @default(now())
+
+  @@unique([userId, projectId])
+}
+
+model ApiKey {
+  id        String   @id @default(uuid())
+  label     String   @default("Default")
+  keyHash   String   @unique
+  prefix    String   // first 8 chars shown to user, e.g. "oqa_a1b2..."
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  lastUsed  DateTime?
+  revoked   Boolean  @default(false)
+}
+
+// ─── Build & Quality Scoring ─────────────────────────────────
+
+model Build {
+  id        String    @id @default(uuid())
+  label     String?   // e.g. "v2.4.1", "CI #1234"
+  projectId String
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  score     Int?      // 0-100 quality score
+  createdAt DateTime  @default(now())
+  testRuns  TestRun[]
+}
+
+// ─── Test Execution ──────────────────────────────────────────
+
+model TestRun {
+  id        String   @id @default(uuid())
+  project   String   // legacy field kept for backward compat
+  projectId String?
+  projectRef Project? @relation(fields: [projectId], references: [id])
+  buildId   String?
+  build     Build?   @relation(fields: [buildId], references: [id])
+  env       String
+  startTime DateTime @default(now())
+  endTime   DateTime?
+  status    String
+  duration  Int?
+  suites    TestSuite[]
+}
+
+model TestSuite {
+  id         String   @id @default(uuid())
+  title      String
+  testRunId  String
+  testRun    TestRun  @relation(fields: [testRunId], references: [id], onDelete: Cascade)
+  tests      TestCase[]
+}
+
+model TestCase {
+  id          String   @id @default(uuid())
+  title       String
+  status      String
+  duration    Int
+  retries     Int      @default(0)
+  suiteId     String
+  suite       TestSuite @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+}
