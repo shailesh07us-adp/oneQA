@@ -11,7 +11,7 @@ export default function SettingsPage() {
     <div className="flex h-screen w-full overflow-hidden">
       <Sidebar />
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#0a0e1a]">
-        <header className="h-16 flex items-center px-8 bg-[#0c1021] border-b border-slate-800/60 sticky top-0 z-10">
+        <header className="h-16 flex items-center px-8 bg-[#0c1021] border-b border-slate-800/60 sticky top-0 z-10 shrink-0">
           <div>
             <h1 className="text-base font-bold text-white tracking-tight">Settings</h1>
             <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Account preferences and platform configuration</p>
