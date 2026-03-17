@@ -38,6 +38,8 @@ export async function POST(req: Request) {
                 title: test.title,
                 status: test.status,
                 duration: test.duration,
+                error: test.error || null,
+                stack: test.stack || null,
               })),
             },
           })),

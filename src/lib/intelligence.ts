@@ -67,3 +67,79 @@ export function classifyFailures(runs: any[]) {
 
   return classified;
 }
+
+export function getFingerprint(error: string | null): string {
+  if (!error) return 'Unknown Error';
+  return error
+    .replace(/\d+/g, 'X')
+    .replace(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/g, 'GUID')
+    .replace(/(?:\d{4}-\d{2}-\d{2})|(?:\d{2}:\d{2}:\d{2})/g, 'TIME')
+    .replace(/at\s+.*:\d+:\d+/g, 'LOC')
+    .substring(0, 200)
+    .trim();
+}
+
+export function clusterFailures(runs: any[]) {
+  const clusters: any[] = [];
+  
+  const allFailedTests: any[] = [];
+  runs.forEach(run => {
+    run.suites?.forEach((suite: any) => {
+      suite.tests?.forEach((test: any) => {
+        if (test.status === 'failed') {
+          allFailedTests.push({
+            ...test,
+            suiteTitle: suite.title,
+            runId: run.id,
+            env: run.env,
+            startTime: run.startTime
+          });
+        }
+      });
+    });
+  });
+
+  allFailedTests.forEach(test => {
+    const fingerprint = getFingerprint(test.error);
+    
+    let cluster = clusters.find(c => c.fingerprint === fingerprint);
+    if (!cluster) {
+      cluster = {
+        id: `cluster-${clusters.length + 1}`,
+        title: test.error ? (test.error.length > 80 ? test.error.substring(0, 80) + '...' : test.error) : 'Unknown Regression',
+        fingerprint,
+        count: 0,
+        severity: 'MEDIUM',
+        envs: new Set(),
+        description: test.error || 'No error message captured.',
+        failures: []
+      };
+      clusters.push(cluster);
+    }
+    
+    cluster.count++;
+    cluster.envs.add(test.env);
+    cluster.failures.push({
+      id: test.id,
+      title: test.title,
+      suite: test.suiteTitle,
+      time: new Date(test.startTime).toLocaleTimeString(),
+      error: test.error,
+      stack: test.stack,
+      runId: test.runId,
+      env: test.env
+    });
+  });
+
+  // Calculate Expert Severity
+  clusters.forEach(cluster => {
+    cluster.envList = Array.from(cluster.envs);
+    if (cluster.envList.includes('PRODUCTION')) {
+      cluster.severity = 'CRITICAL';
+    } else if (cluster.envList.length > 1) {
+      cluster.severity = 'HIGH';
+    }
+  });
+
+  return clusters;
+}

@@ -17,10 +17,12 @@ import {
   Loader2,
   TrendingUp,
   Sparkles,
+  AlertTriangle,
 } from "lucide-react";
 
 const dashboardItems = [
   { href: "/", label: "Overview", icon: Activity, minGlobalRole: null },
+  { href: "/triage", label: "Triage Center", icon: AlertTriangle, minGlobalRole: null, badge: "3" },
   { href: "/runs", label: "Test Runs", icon: CheckCircle2, minGlobalRole: null },
   { href: "/projects", label: "Projects", icon: FolderOpen, minGlobalRole: null },
   { href: "/performance", label: "Performance", icon: Clock, minGlobalRole: null },
@@ -63,7 +65,7 @@ export default function Sidebar() {
     return userRole === "ADMIN" || userRole === minGlobalRole;
   };
 
-  const renderNavItem = (item: { href: string; label: string; icon: any; minGlobalRole?: string | null }) => {
+  const renderNavItem = (item: { href: string; label: string; icon: any; minGlobalRole?: string | null; badge?: string }) => {
     if (!canSee(item.minGlobalRole || null)) return null;
     const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
     const Icon = item.icon;
@@ -85,7 +87,12 @@ export default function Sidebar() {
         `}
       >
         <Icon className={`w-4 h-4 ${isActive ? "text-indigo-400" : "text-slate-500 group-hover:text-slate-300"}`} />
-        {item.label}
+        <span className="flex-1">{item.label}</span>
+        {item.badge && (
+          <span className="px-1.5 py-0.5 rounded-md bg-rose-500/20 text-rose-400 text-[10px] font-black border border-rose-500/30 group-hover:scale-110 transition-transform">
+            {item.badge}
+          </span>
+        )}
         {navigatingTo === item.href ? (
           <Loader2 className="w-3 h-3 ml-auto animate-spin text-indigo-400" />
         ) : (

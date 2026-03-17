@@ -102,7 +102,19 @@ model TestCase {
   title       String
   status      String
   duration    Int
+  error       String?
+  stack       String?
   retries     Int      @default(0)
   suiteId     String
   suite       TestSuite @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+}
+
+model FailurePattern {
+  id              String   @id @default(uuid())
+  fingerprint     String   @unique
+  resolvedStatus  String   // e.g., 'fixed', 'known-issue', 'flaky'
+  comment         String?
+  occurrenceCount Int      @default(1)
+  lastSeen        DateTime @default(now())
+  createdAt       DateTime @default(now())
 }
