@@ -13,6 +13,8 @@ import {
   RefreshCw,
   Filter,
   X,
+  Sparkles,
+  Clock,
 } from "lucide-react";
 import { relativeTime, downloadCsv } from "@/lib/utils";
 
@@ -32,6 +34,7 @@ export default function RunsPage() {
 
   // UI state
   const [collapsedSuites, setCollapsedSuites] = useState<Set<string>>(new Set());
+  const [triagingTestId, setTriagingTestId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchRuns = useCallback(async () => {
@@ -267,29 +270,87 @@ export default function RunsPage() {
                               <div className="bg-black/20 px-4 pb-4">
                                 <div className="rounded-2xl border border-white/[0.03] overflow-hidden divide-y divide-white/[0.02] bg-[#0c1021]/50">
                                   {sortedTests.map((test: any) => (
-                                    <div key={test.id} className="px-6 py-2.5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group/test">
-                                      <div className="flex items-center gap-4">
-                                        <div className="shrink-0">
-                                          {test.status === "passed" ? (
-                                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500/60" />
-                                          ) : test.status === "failed" ? (
-                                            <XCircle className="w-3.5 h-3.5 text-rose-500" />
-                                          ) : (
-                                            <SkipForward className="w-3.5 h-3.5 text-amber-500/60" />
-                                          )}
+                                    <div key={test.id} className="group/test-item">
+                                      <div className={`px-6 py-2.5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group/test ${triagingTestId === test.id ? 'bg-indigo-500/[0.05]' : ''}`}>
+                                        <div className="flex items-center gap-4">
+                                          <div className="shrink-0">
+                                            {test.status === "passed" ? (
+                                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500/60" />
+                                            ) : test.status === "failed" ? (
+                                              <XCircle className="w-3.5 h-3.5 text-rose-500" />
+                                            ) : (
+                                              <SkipForward className="w-3.5 h-3.5 text-amber-500/60" />
+                                            )}
+                                          </div>
+                                          <span className={`text-[13px] font-medium transition-colors ${test.status === 'failed' ? 'text-rose-400 font-bold' : 'text-slate-400 group-hover/test:text-slate-200'}`}>
+                                            {test.title}
+                                          </span>
                                         </div>
-                                        <span className={`text-[13px] font-medium transition-colors ${test.status === 'failed' ? 'text-rose-400 font-bold' : 'text-slate-400 group-hover/test:text-slate-200'}`}>
-                                          {test.title}
-                                        </span>
+                                        <div className="flex items-center gap-3">
+                                          {test.status === 'failed' && (
+                                            <button 
+                                              onClick={() => setTriagingTestId(triagingTestId === test.id ? null : test.id)}
+                                              className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded transition-all shadow-lg active:scale-95 ${triagingTestId === test.id ? 'bg-white text-black' : 'bg-rose-600 text-white hover:bg-rose-500 shadow-rose-900/20'}`}
+                                            >
+                                              {triagingTestId === test.id ? 'Close Triage' : 'Triage Failure'}
+                                            </button>
+                                          )}
+                                          <span className="text-[10px] font-mono text-slate-600">{(test.duration / 1000).toFixed(2)}s</span>
+                                        </div>
                                       </div>
-                                      <div className="flex items-center gap-3">
-                                        {test.status === 'failed' && (
-                                          <button className="text-[8px] font-black text-white uppercase tracking-widest px-2 py-1 bg-rose-600 rounded hover:bg-rose-500 transition-colors shadow-lg shadow-rose-900/20 active:scale-95">
-                                            Triage Failure
-                                          </button>
-                                        )}
-                                        <span className="text-[10px] font-mono text-slate-600">{(test.duration / 1000).toFixed(2)}s</span>
-                                      </div>
+
+                                      {/* Failure Intelligence Drawer */}
+                                      {triagingTestId === test.id && (
+                                        <div className="p-4 bg-slate-950/50 border-y border-white/[0.02] animate-in slide-in-from-top-2 duration-300">
+                                          <div className="glass rounded-2xl border-t-2 border-indigo-500/40 shadow-[0_-8px_15px_-5px_rgba(99,102,241,0.2)] overflow-hidden">
+                                            <div className="p-6 space-y-6">
+                                              {/* Error Snapshot */}
+                                              <div>
+                                                <div className="flex items-center gap-2 mb-3">
+                                                  <XCircle className="w-3 h-3 text-rose-500" />
+                                                  <span className="text-[9px] font-black text-rose-500 uppercase tracking-widest">Error Log</span>
+                                                </div>
+                                                <div className="p-4 rounded-xl bg-black/40 border border-white/5 font-mono text-[11px] text-rose-300/90 leading-relaxed overflow-x-auto">
+                                                  <p className="font-bold mb-2">AssertionError: Expected element &lt;button#submit&gt; to be visible, but it was hidden.</p>
+                                                  <p className="text-slate-600">at Page.verifySubmitButton (tests/pages/login.ts:42:15)</p>
+                                                  <p className="text-slate-600">at tests/specs/login.spec.ts:18:24</p>
+                                                </div>
+                                              </div>
+
+                                              {/* AI Intelligence Block */}
+                                              <div className="p-5 rounded-2xl bg-indigo-500/[0.03] border border-indigo-500/10 relative overflow-hidden group/ai">
+                                                <div className="absolute top-0 right-0 p-3 opacity-20 group-hover/ai:opacity-100 transition-opacity">
+                                                  <Sparkles className="w-5 h-5 text-indigo-400" />
+                                                </div>
+                                                <div className="flex items-center gap-2 mb-3">
+                                                  <span className="text-[9px] font-black text-indigo-400 uppercase tracking-[0.2em]">OneQA Intelligence Hypothesis</span>
+                                                </div>
+                                                <p className="text-xs text-slate-300 leading-relaxed max-w-2xl font-medium">
+                                                  Root cause likely associated with <span className="text-indigo-400">Environment Latency</span>. Similar failures detected in 4 other suites on the <span className="text-emerald-400">PRODUCTION</span> environment. Component #submit visibility timings are currently 400ms above baseline.
+                                                </p>
+                                              </div>
+
+                                              {/* Prescriptive Actions */}
+                                              <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                                                <div className="flex items-center gap-2">
+                                                  <button className="px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500/20 transition-all">
+                                                    Re-run Test
+                                                  </button>
+                                                  <button className="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-[10px] font-black uppercase tracking-widest hover:bg-slate-700 transition-all">
+                                                    Mark as Flaky
+                                                  </button>
+                                                  <button className="px-3 py-1.5 rounded-lg border border-slate-700 text-slate-500 text-[10px] font-black uppercase tracking-widest hover:text-slate-300 transition-all">
+                                                    Link Jira
+                                                  </button>
+                                                </div>
+                                                <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest mr-2 flex items-center gap-2">
+                                                  <Clock className="w-3 h-3" /> Artifacts available: DOM, Network, Video
+                                                </span>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
                                     </div>
                                   ))}
                                 </div>
