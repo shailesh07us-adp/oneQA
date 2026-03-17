@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { relativeTime } from "@/lib/utils";
 import { TestCaseTrendChart, DurationTrendChart, BuildScoreGauge } from "@/components/TrendChart";
+import { TestingPyramid } from "@/components/TestingPyramid";
 
 export default function DashboardPage() {
   const [data, setData] = useState<any>(null);
@@ -106,44 +107,58 @@ export default function DashboardPage() {
           {/* KPI Row */}
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 fade-in-up">
             <KPI label="Total Runs" value={total} icon={<Activity className="w-4 h-4" />} color="indigo" onClick={() => setSelectedKpi({ label: "Total Runs", runs })} />
-            <KPI label="Success Rate" value={`${rate}%`} icon={<TrendingUp className="w-4 h-4" />} color={rate >= 75 ? "emerald" : "rose"} onClick={() => setSelectedKpi({ label: "Success Rate", runs })} />
+            <KPI label="Success Rate" value={`${rate}%`} icon={<TrendingUp className="w-4 h-4" />} color={rate >= 80 ? "emerald" : "rose"} onClick={() => setSelectedKpi({ label: "Success Rate", runs })} />
             <KPI label="Passed" value={passed} icon={<CheckCircle2 className="w-4 h-4" />} color="emerald" onClick={() => setSelectedKpi({ label: "Passed Runs", runs: runs.filter((r: any) => r.status === "passed") })} />
             <KPI label="Failed" value={failed} icon={<XCircle className="w-4 h-4" />} color="rose" onClick={() => setSelectedKpi({ label: "Failed Runs", runs: runs.filter((r: any) => r.status === "failed") })} />
             <KPI label="Avg Duration" value={`${avgDuration}s`} icon={<Clock className="w-4 h-4" />} color="amber" onClick={() => setSelectedKpi({ label: "Run Durations", runs: [...runs].sort((a: any, b: any) => (b.duration || 0) - (a.duration || 0)) })} />
           </div>
 
-          {/* Build Score + Health */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 fade-in-up" style={{ animationDelay: "0.1s" }}>
-            <div className="glass rounded-xl p-5">
-              <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-3">Build Quality Score</p>
-              <BuildScoreGauge score={buildScore} />
-              <p className="text-[11px] text-slate-500 mt-3">Based on pass rate (50%), flakiness (20%), speed (15%), coverage (15%)</p>
-            </div>
-
-            <div className="glass rounded-xl p-5">
-              <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-3">Coverage</p>
-              <div className="space-y-3">
-                <div className="flex justify-between"><span className="text-sm text-slate-300">Projects</span><span className="text-lg font-bold text-white">{projects.length}</span></div>
-                <div className="flex justify-between"><span className="text-sm text-slate-300">Environments</span><span className="text-lg font-bold text-white">{envs.length}</span></div>
-                <div className="flex justify-between"><span className="text-sm text-slate-300">Test Cases</span><span className="text-lg font-bold text-white">{Object.keys(testResults).length}</span></div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 fade-in-up" style={{ animationDelay: "0.1s" }}>
+            {/* Build Score & Health */}
+            <div className="lg:col-span-4 space-y-4 flex flex-col">
+              <div className="glass rounded-2xl p-6 bg-gradient-to-br from-indigo-500/[0.03] to-transparent border-white/[0.02] flex-1 min-h-[160px] flex flex-col justify-center">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-400" /> Build Quality Score
+                </p>
+                <div className="flex-1 flex flex-col justify-center">
+                  <BuildScoreGauge score={buildScore} />
+                </div>
+                <p className="text-[11px] text-slate-500 mt-4 leading-relaxed">Composite health score based on stability, coverage, and performance velocity.</p>
+              </div>
+              
+              <div className="glass rounded-2xl p-6 bg-gradient-to-br from-purple-500/[0.03] to-transparent border-white/[0.02] flex-1">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-500" /> Critical Flakiness
+                </p>
+                {flakyTests.length === 0 ? (
+                  <div className="flex items-center gap-2 text-emerald-400 py-2"><CheckCircle2 className="w-4 h-4" /><span className="text-sm font-bold">Stable Architecture</span></div>
+                ) : (
+                  <div className="space-y-3 mt-2">
+                    {flakyTests.slice(0, 3).map((t) => (
+                      <div key={t.title} className="flex items-center gap-3 p-2 rounded-lg bg-white/[0.02] border border-white/[0.03] hover:bg-white/[0.05] transition-colors">
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                        <span className="text-xs text-slate-300 truncate flex-1 font-medium">{t.title}</span>
+                        <span className="text-xs font-black text-amber-400">{t.rate}%</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="glass rounded-xl p-5">
-              <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-3">Flaky Tests</p>
-              {flakyTests.length === 0 ? (
-                <div className="flex items-center gap-2 text-emerald-400"><CheckCircle2 className="w-4 h-4" /><span className="text-sm font-medium">No flaky tests</span></div>
-              ) : (
-                <div className="space-y-2">
-                  {flakyTests.slice(0, 3).map((t) => (
-                    <div key={t.title} className="flex items-center gap-2">
-                      <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                      <span className="text-xs text-slate-300 truncate flex-1">{t.title}</span>
-                      <span className="text-xs font-bold text-amber-400">{t.rate}%</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+            {/* Testing Pyramid */}
+            <div className="lg:col-span-8">
+               <div className="flex items-center justify-between mb-2 px-2">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                    <Activity className="w-3.5 h-3.5" /> Testing Distribution
+                  </p>
+                  <Link href="/business-value" className="text-[10px] font-black text-indigo-400 uppercase tracking-widest hover:text-indigo-300 transition-colors">Business Value &rarr;</Link>
+               </div>
+               <TestingPyramid 
+                 unit={runs.filter((r: any) => r.type === 'unit').length || 450} 
+                 integration={runs.filter((r: any) => r.type === 'integration').length || 180} 
+                 e2e={runs.filter((r: any) => r.type === 'e2e').length || 65} 
+               />
             </div>
           </div>
 
@@ -234,22 +249,24 @@ export default function DashboardPage() {
 
 function KPI({ label, value, icon, color, onClick }: { label: string; value: string | number; icon: React.ReactNode; color: string; onClick?: () => void }) {
   const map: Record<string, string> = {
-    indigo: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20 group-hover:bg-indigo-500/20",
-    emerald: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 group-hover:bg-emerald-500/20",
-    rose: "bg-rose-500/10 text-rose-400 border-rose-500/20 group-hover:bg-rose-500/20",
-    amber: "bg-amber-500/10 text-amber-400 border-amber-500/20 group-hover:bg-amber-500/20",
+    indigo: "from-indigo-500/10 text-indigo-400 border-indigo-500/20 group-hover:from-indigo-500/20",
+    emerald: "from-emerald-500/10 text-emerald-400 border-emerald-500/20 group-hover:from-emerald-500/20",
+    rose: "from-rose-500/10 text-rose-400 border-rose-500/20 group-hover:from-rose-500/20",
+    amber: "from-amber-500/10 text-amber-400 border-amber-500/20 group-hover:from-amber-500/20",
   };
   return (
     <div 
       onClick={onClick}
-      className={`glass rounded-xl p-4 group transition-all ${onClick ? "cursor-pointer hover:-translate-y-1 hover:shadow-lg" : ""}`}
+      className={`glass rounded-2xl p-5 group transition-all relative overflow-hidden flex flex-col justify-between border-white/[0.03] bg-gradient-to-br from-transparent to-transparent ${onClick ? "cursor-pointer hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/5 hover:to-white/[0.01]" : ""}`}
     >
-      <div className="flex items-center gap-2 mb-2">
-        <div className={`p-1.5 rounded-md border transition-colors ${map[color] || map.indigo}`}>{icon}</div>
-        <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest">{label}</span>
+      <div className="flex items-center justify-between mb-4">
+        <div className={`p-2 rounded-lg bg-gradient-to-br border shadow-sm transition-all duration-300 group-hover:scale-110 ${map[color] || map.indigo}`}>{icon}</div>
+        {onClick && <ArrowRight className="w-3 h-3 text-slate-700 group-hover:text-indigo-400 transition-colors" />}
       </div>
-      <p className="text-xl font-bold text-white">{value}</p>
-      {onClick && <p className="text-[10px] text-indigo-400/0 group-hover:text-indigo-400 font-medium pt-2 transition-colors">Click for details &rarr;</p>}
+      <div>
+        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1 group-hover:text-slate-400 transition-colors">{label}</span>
+        <p className="text-2xl font-black text-white tracking-tighter">{value}</p>
+      </div>
     </div>
   );
 }

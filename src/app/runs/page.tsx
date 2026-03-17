@@ -144,69 +144,96 @@ export default function RunsPage() {
               <RefreshCw className="w-6 h-6 text-indigo-400 animate-spin" />
             </div>
           ) : runs.length === 0 ? (
-            <div className="glass rounded-xl p-16 text-center">
+            <div className="glass rounded-2xl p-16 text-center border-white/[0.03]">
               <p className="text-slate-500 text-sm">No test runs match your filters.</p>
             </div>
           ) : (
-            runs.map((run: any, idx: number) => {
-              const totalTests = run.suites.reduce((s: number, suite: any) => s + suite.tests.length, 0);
-              const passedTests = run.suites.reduce((s: number, suite: any) => s + suite.tests.filter((t: any) => t.status === "passed").length, 0);
-              const failedTests = run.suites.reduce((s: number, suite: any) => s + suite.tests.filter((t: any) => t.status === "failed").length, 0);
+            <div className="space-y-5">
+              {runs.map((run: any, idx: number) => {
+                const totalTests = run.suites.reduce((s: number, suite: any) => s + suite.tests.length, 0);
+                const passedTests = run.suites.reduce((s: number, suite: any) => s + suite.tests.filter((t: any) => t.status === "passed").length, 0);
+                const failedTests = run.suites.reduce((s: number, suite: any) => s + suite.tests.filter((t: any) => t.status === "failed").length, 0);
+                const isPassed = run.status === "passed";
 
-              return (
-                <div key={run.id} className="glass rounded-xl overflow-hidden fade-in-up" style={{ animationDelay: `${idx * 0.05}s` }}>
-                  <div className="p-5 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${run.status === "passed" ? "bg-emerald-500/10 border border-emerald-500/20" : "bg-rose-500/10 border border-rose-500/20"}`}>
-                        {run.status === "passed" ? <CheckCircle2 className="w-5 h-5 text-emerald-400" /> : <XCircle className="w-5 h-5 text-rose-400" />}
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-white">{run.project}</p>
-                        <p className="text-xs text-slate-500 mt-0.5" title={new Date(run.startTime).toLocaleString()}>
-                          {relativeTime(run.startTime)} · {run.duration ? `${(run.duration / 1000).toFixed(1)}s` : "—"}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <span className="inline-flex px-2 py-0.5 rounded text-[11px] font-medium bg-slate-800/80 text-slate-300 border border-slate-700/50">{run.env}</span>
-                      <div className="flex items-center gap-3 text-xs">
-                        <span className="flex items-center gap-1 text-emerald-400"><CheckCircle2 className="w-3 h-3" /> {passedTests}</span>
-                        <span className="flex items-center gap-1 text-rose-400"><XCircle className="w-3 h-3" /> {failedTests}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-slate-800/40">
-                    {run.suites.map((suite: any) => {
-                      const isCollapsed = collapsedSuites.has(suite.id);
-                      return (
-                        <div key={suite.id}>
-                          <button
-                            onClick={() => toggleSuite(suite.id)}
-                            className="w-full px-5 py-2.5 bg-slate-900/30 border-b border-slate-800/30 flex items-center justify-between hover:bg-slate-800/30 transition-colors"
-                          >
-                            <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider flex items-center gap-1">
-                              {isCollapsed ? <ChevronRightIcon className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                              {suite.title}
-                            </p>
-                            <span className="text-[10px] text-slate-600">{suite.tests.length} tests</span>
-                          </button>
-                          {!isCollapsed && suite.tests.map((test: any) => (
-                            <div key={test.id} className="px-5 py-2.5 flex items-center justify-between hover:bg-slate-800/20 transition-colors border-b border-slate-800/20 last:border-b-0">
-                              <div className="flex items-center gap-3">
-                                {test.status === "passed" ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> : test.status === "failed" ? <XCircle className="w-3.5 h-3.5 text-rose-500 shrink-0" /> : <SkipForward className="w-3.5 h-3.5 text-amber-500 shrink-0" />}
-                                <span className="text-sm text-slate-300">{test.title}</span>
-                              </div>
-                              <span className="text-xs text-slate-500 font-mono">{(test.duration / 1000).toFixed(1)}s</span>
-                            </div>
-                          ))}
+                return (
+                  <div key={run.id} className="glass rounded-2xl overflow-hidden fade-in-up border-white/[0.03] group hover:shadow-xl hover:shadow-indigo-500/5 transition-all" style={{ animationDelay: `${idx * 0.05}s` }}>
+                    <div className="p-5 flex items-center justify-between relative overflow-hidden">
+                      <div className={`absolute top-0 left-0 w-1 h-full ${isPassed ? 'bg-emerald-500/40' : 'bg-rose-500/40'}`} />
+                      
+                      <div className="flex items-center gap-5">
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${isPassed ? "bg-emerald-500/10 border border-emerald-500/20" : "bg-rose-500/10 border border-rose-500/20"}`}>
+                          <div className="relative">
+                            {isPassed ? <CheckCircle2 className="w-6 h-6 text-emerald-400" /> : <XCircle className="w-6 h-6 text-rose-400" />}
+                            <div className={`absolute -inset-1 rounded-full animate-pulse blur-sm ${isPassed ? 'bg-emerald-400/20' : 'bg-rose-400/20'}`} />
+                          </div>
                         </div>
-                      );
-                    })}
+                        <div>
+                          <p className="text-base font-bold text-white tracking-tight">{run.project}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{relativeTime(run.startTime)}</span>
+                            <span className="w-1 h-1 rounded-full bg-slate-700" />
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{run.duration ? `${(run.duration / 1000).toFixed(1)}s` : "—"} Duration</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-6">
+                        <div className="text-right">
+                          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Environment</p>
+                          <span className="px-2.5 py-1 rounded-md text-[10px] font-black bg-slate-900 text-slate-300 border border-slate-800 uppercase tracking-widest">{run.env}</span>
+                        </div>
+                        <div className="text-right border-l border-slate-800/60 pl-6">
+                          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Results</p>
+                          <div className="flex items-center gap-3 text-[11px] font-black">
+                            <span className="flex items-center gap-1.5 text-emerald-400"><CheckCircle2 className="w-3.5 h-3.5" /> {passedTests}</span>
+                            <span className="flex items-center gap-1.5 text-rose-400"><XCircle className="w-3.5 h-3.5" /> {failedTests}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white/[0.01] border-t border-white/[0.03]">
+                      {run.suites.map((suite: any) => {
+                        const isCollapsed = collapsedSuites.has(suite.id);
+                        return (
+                          <div key={suite.id}>
+                            <button
+                              onClick={() => toggleSuite(suite.id)}
+                              className="w-full px-6 py-3 border-b border-white/[0.02] flex items-center justify-between hover:bg-white/[0.02] transition-colors group/suite"
+                            >
+                              <div className="flex items-center gap-3">
+                                {isCollapsed ? <ChevronRightIcon className="w-4 h-4 text-slate-600" /> : <ChevronDown className="w-4 h-4 text-indigo-400" />}
+                                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest group-hover/suite:text-slate-200 transition-colors">
+                                  {suite.title}
+                                </p>
+                              </div>
+                              <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{suite.tests.length} Total Tests</span>
+                            </button>
+                            {!isCollapsed && (
+                              <div className="divide-y divide-white/[0.01]">
+                                {suite.tests.map((test: any) => (
+                                  <div key={test.id} className="px-10 py-3 flex items-center justify-between hover:bg-indigo-500/[0.03] transition-colors group/test">
+                                    <div className="flex items-center gap-4">
+                                      <div className="shrink-0">
+                                        {test.status === "passed" ? <CheckCircle2 className="w-4 h-4 text-emerald-500/60" /> : test.status === "failed" ? <XCircle className="w-4 h-4 text-rose-500/60" /> : <SkipForward className="w-4 h-4 text-amber-500/60" />}
+                                      </div>
+                                      <span className="text-sm font-medium text-slate-300 group-hover/test:text-white transition-colors">{test.title}</span>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                      <span className="text-[10px] font-mono text-slate-600 group-hover/test:text-indigo-400 transition-colors">{(test.duration / 1000).toFixed(2)}s</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              );
-            })
+                );
+              })}
+            </div>
           )}
 
           {/* Pagination */}

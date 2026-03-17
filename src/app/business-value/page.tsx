@@ -67,46 +67,49 @@ export default function BusinessValuePage() {
             <div className="space-y-6 fade-in-up">
               
               {/* ROI & Key Impact Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="glass rounded-xl p-5 border-l-4 border-emerald-500">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-300">Automation Savings</p>
-                    <div className="p-1.5 rounded-lg bg-emerald-500/10">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="glass rounded-3xl p-6 bg-gradient-to-br from-emerald-500/[0.03] to-transparent border-white/[0.02] relative overflow-hidden group hover:-translate-y-1 transition-all">
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500/80">Automation Savings</p>
+                    <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 group-hover:scale-110 transition-transform">
                       <DollarSign className="w-4 h-4 text-emerald-400" />
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold text-white">{adoData.businessValue.roi.formattedMoney}</h3>
-                  <p className="text-xs text-slate-400 mt-1">Est. cost savings this cycle</p>
+                  <h3 className="text-3xl font-black text-white tracking-tighter">{adoData.businessValue.roi.formattedMoney}</h3>
+                  <p className="text-[11px] text-slate-500 mt-2 font-medium">Est. capital efficiency this cycle</p>
+                  <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500/0 via-emerald-500/40 to-emerald-500/0 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
 
-                <div className="glass rounded-xl p-5 border-l-4 border-emerald-500">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-300">Human Capital ROI</p>
-                    <div className="p-1.5 rounded-lg bg-emerald-500/10">
-                      <Clock className="w-4 h-4 text-emerald-400" />
+                <div className="glass rounded-3xl p-6 bg-gradient-to-br from-indigo-500/[0.03] to-transparent border-white/[0.02] relative overflow-hidden group hover:-translate-y-1 transition-all">
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400/80">Human Capital ROI</p>
+                    <div className="p-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 group-hover:scale-110 transition-transform">
+                      <Clock className="w-4 h-4 text-indigo-400" />
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold text-white">{adoData.businessValue.roi.hoursSaved.toLocaleString()}h</h3>
-                  <p className="text-xs text-slate-400 mt-1">Manual testing hours reclaimed</p>
+                  <h3 className="text-3xl font-black text-white tracking-tighter">{adoData.businessValue.roi.hoursSaved.toLocaleString()}h</h3>
+                  <p className="text-[11px] text-slate-500 mt-2 font-medium">Manual engineering hours reclaimed</p>
+                  <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500/0 via-indigo-500/40 to-indigo-500/0 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
 
-                <div className="glass rounded-xl p-5 border-l-4 border-sky-500">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-sky-300">Escaped Defect Rate</p>
-                    <div className="p-1.5 rounded-lg bg-sky-500/10">
+                <div className="glass rounded-3xl p-6 bg-gradient-to-br from-sky-500/[0.03] to-transparent border-white/[0.02] relative overflow-hidden group hover:-translate-y-1 transition-all">
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-400/80">Escaped Defect Rate</p>
+                    <div className="p-2 rounded-lg bg-sky-500/10 border border-sky-500/20 group-hover:scale-110 transition-transform">
                       <ShieldCheck className="w-4 h-4 text-sky-400" />
                     </div>
                   </div>
-                  <div className="flex items-baseline gap-2">
-                    <h3 className="text-2xl font-bold text-white">{adoData.businessValue.escapedDefects.rate}%</h3>
+                  <div className="flex items-baseline gap-3">
+                    <h3 className="text-3xl font-black text-white tracking-tighter">{adoData.businessValue.escapedDefects.rate}%</h3>
                     <span 
-                      className="text-[11px] font-bold" 
+                      className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-white/5 border border-white/5 shadow-sm" 
                       style={{ color: adoData.businessValue.escapedDefects.color }}
                     >
                       {adoData.businessValue.escapedDefects.label}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400 mt-1">{adoData.businessValue.escapedDefects.prodCount} Prod bugs / {adoData.businessValue.escapedDefects.qaCount} QA bugs</p>
+                  <p className="text-[11px] text-slate-500 mt-2 font-medium">{adoData.businessValue.escapedDefects.prodCount} Prod bugs / {adoData.businessValue.escapedDefects.qaCount} QA</p>
+                  <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-sky-500/0 via-sky-500/40 to-sky-500/0 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
               </div>
 
@@ -187,20 +190,25 @@ export default function BusinessValuePage() {
               </div>
 
               {/* Deployment Confidence Section */}
-              <div className="glass rounded-xl p-6 bg-gradient-to-br from-slate-900 via-[#0c1021] to-slate-900 border border-emerald-500/20">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="glass rounded-3xl p-8 bg-gradient-to-br from-indigo-500/[0.05] via-[#0c1021] to-emerald-500/[0.05] border-emerald-500/20 relative overflow-hidden group">
+                <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.02] pointer-events-none" />
+                <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
                   <div className="flex-1">
-                    <h2 className="text-xl font-bold text-white mb-2">Deployment Confidence Score</h2>
-                    <p className="text-sm text-slate-400 max-w-xl">
-                      An AI-aggregated indicator based on escaped defects, regression stability, and requirement coverage. Use this to inform your Go/No-Go decisions.
+                    <div className="flex items-center gap-2 mb-3">
+                      <Sparkles className="w-4 h-4 text-emerald-400 animate-pulse" />
+                      <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em]">AI Synthesis Engine</span>
+                    </div>
+                    <h2 className="text-2xl font-black text-white mb-3 tracking-tight">Deployment Confidence Score</h2>
+                    <p className="text-sm text-slate-400 max-w-xl leading-relaxed">
+                      An industry-first composite indicator derived from escaped defects, regression stability, and requirement coverage. Verified by OneQA Intelligence for strategic "Go/No-Go" decision support.
                     </p>
                   </div>
-                  <div className="flex items-center gap-6">
-                    <div className="text-center">
-                      <div className="text-4xl font-black text-emerald-400 tracking-tighter">94<span className="text-lg">%</span></div>
-                      <div className="text-[10px] font-bold text-emerald-500/80 uppercase">READY TO SHIP</div>
+                  <div className="flex items-center gap-10">
+                    <div className="text-center group/score transition-transform hover:scale-105">
+                      <div className="text-6xl font-black text-emerald-400 tracking-tighter drop-shadow-[0_0_15px_rgba(52,211,153,0.3)] group-hover/score:drop-shadow-[0_0_25px_rgba(52,211,153,0.5)] transition-all">94<span className="text-xl text-emerald-500/60 ml-1">%</span></div>
+                      <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mt-1">HIGH CERTAINTY</div>
                     </div>
-                    <button className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold transition-all shadow-lg shadow-emerald-900/40 border border-emerald-400/20">
+                    <button className="px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white text-sm font-black transition-all shadow-xl shadow-emerald-900/40 border-t border-white/20 active:scale-95 uppercase tracking-widest">
                       Approve Release
                     </button>
                   </div>

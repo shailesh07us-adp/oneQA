@@ -90,61 +90,65 @@ export default async function PerformancePage() {
 
           {/* Duration by Project */}
           <div className="fade-in-up" style={{ animationDelay: "0.1s" }}>
-            <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-              <Zap className="w-4 h-4 text-amber-400" /> Duration by Project
-            </h2>
-            <div className="glass rounded-xl overflow-hidden">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-slate-800/60">
-                    <th className="px-6 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Project</th>
-                    <th className="px-6 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider text-center">Runs</th>
-                    <th className="px-6 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider text-center">Avg</th>
-                    <th className="px-6 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider text-center">Fastest</th>
-                    <th className="px-6 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider text-center">Slowest</th>
-                    <th className="px-6 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Relative</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/40">
-                  {projectStats.map((p) => {
-                    const pct = avgDuration > 0 ? Math.min(100, Math.round((p.avg / maxDuration) * 100)) : 0;
-                    return (
-                      <tr key={p.project} className="hover:bg-slate-800/30 transition-colors">
-                        <td className="px-6 py-3.5 text-sm font-medium text-slate-200">{p.project}</td>
-                        <td className="px-6 py-3.5 text-sm text-slate-400 text-center">{p.runs}</td>
-                        <td className="px-6 py-3.5 text-sm text-white text-center font-mono font-medium">{p.avg}s</td>
-                        <td className="px-6 py-3.5 text-sm text-emerald-400 text-center font-mono">{p.min}s</td>
-                        <td className="px-6 py-3.5 text-sm text-rose-400 text-center font-mono">{p.max}s</td>
-                        <td className="px-6 py-3.5">
-                          <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                            <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-700" style={{ width: `${pct}%` }} />
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div className="flex items-center justify-between mb-4 px-2">
+              <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                <Zap className="w-3.5 h-3.5 text-amber-500" /> Duration by Project
+              </h2>
+            </div>
+            <div className="glass rounded-2xl overflow-hidden border-white/[0.03]">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/[0.03] bg-white/[0.01]">
+                      <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Project</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Runs</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Avg</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Fastest</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Slowest</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Relative Speed</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/[0.02]">
+                    {projectStats.map((p) => {
+                      const pct = avgDuration > 0 ? Math.min(100, Math.round((p.avg / maxDuration) * 100)) : 0;
+                      return (
+                        <tr key={p.project} className="group hover:bg-white/[0.02] transition-colors">
+                          <td className="px-6 py-4 text-sm font-bold text-slate-200 group-hover:text-white transition-colors">{p.project}</td>
+                          <td className="px-6 py-4 text-sm text-slate-500 text-center font-medium">{p.runs}</td>
+                          <td className="px-6 py-4 text-sm text-white text-center font-black">{p.avg}s</td>
+                          <td className="px-6 py-4 text-sm text-emerald-400/80 text-center font-bold tracking-tight">{p.min}s</td>
+                          <td className="px-6 py-4 text-sm text-rose-400/80 text-center font-bold tracking-tight">{p.max}s</td>
+                          <td className="px-6 py-4">
+                            <div className="w-48 h-1.5 bg-slate-900 rounded-full overflow-hidden border border-white/[0.02]">
+                              <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-1000 group-hover:brightness-125" style={{ width: `${pct}%` }} />
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Slowest Test Cases */}
             <div className="fade-in-up" style={{ animationDelay: "0.15s" }}>
-              <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-                <TrendingDown className="w-4 h-4 text-rose-400" /> Slowest Test Cases
+              <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2 px-2">
+                <TrendingDown className="w-3.5 h-3.5 text-rose-500" /> Slowest Test Cases
               </h2>
-              <div className="glass rounded-xl p-4 space-y-3">
+              <div className="glass rounded-2xl p-6 space-y-4 border-white/[0.03]">
                 {slowestTests.slice(0, 6).map((t, i) => (
-                  <div key={t.title} className="flex items-center gap-3">
-                    <span className="w-5 h-5 rounded-full bg-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-400">{i + 1}</span>
-                    <span className="text-sm text-slate-300 flex-1 truncate">{t.title}</span>
-                    <div className="flex items-center gap-2 text-xs shrink-0">
-                      <span className="text-slate-500">avg</span>
-                      <span className="text-white font-mono font-medium">{(t.avg / 1000).toFixed(1)}s</span>
-                      <span className="text-slate-600">|</span>
-                      <span className="text-slate-500">max</span>
-                      <span className="text-rose-400 font-mono">{(t.max / 1000).toFixed(1)}s</span>
+                  <div key={t.title} className="flex items-center gap-4 group/item transition-all hover:translate-x-1">
+                    <span className="w-6 h-6 rounded-lg bg-slate-800 flex items-center justify-center text-[10px] font-black text-slate-500 group-hover/item:bg-rose-500/20 group-hover/item:text-rose-400 transition-colors border border-white/[0.03]">{i + 1}</span>
+                    <span className="text-sm font-bold text-slate-300 flex-1 truncate group-hover/item:text-white">{t.title}</span>
+                    <div className="flex items-center gap-3 text-[10px] shrink-0 font-black uppercase tracking-widest">
+                      <span className="text-slate-600">Avg</span>
+                      <span className="text-white">{(t.avg / 1000).toFixed(1)}s</span>
+                      <span className="w-1 h-1 rounded-full bg-slate-800" />
+                      <span className="text-slate-600">Max</span>
+                      <span className="text-rose-500">{(t.max / 1000).toFixed(1)}s</span>
                     </div>
                   </div>
                 ))}
@@ -153,17 +157,17 @@ export default async function PerformancePage() {
 
             {/* Duration by Environment */}
             <div className="fade-in-up" style={{ animationDelay: "0.2s" }}>
-              <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-                <Clock className="w-4 h-4 text-indigo-400" /> Duration by Environment
+              <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2 px-2">
+                <Clock className="w-3.5 h-3.5 text-indigo-400" /> Duration by Environment
               </h2>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 {Object.entries(envDurations).map(([env, d]) => {
                   const avg = Math.round(d.total / d.count / 1000);
                   return (
-                    <div key={env} className="glass rounded-xl p-4 text-center">
-                      <span className="inline-flex px-3 py-1 rounded-md text-xs font-medium bg-slate-800/80 text-slate-300 border border-slate-700/50 mb-3">{env}</span>
-                      <p className="text-2xl font-bold text-white font-mono">{avg}s</p>
-                      <p className="text-[11px] text-slate-500 mt-1">{d.count} runs · avg duration</p>
+                    <div key={env} className="glass rounded-2xl p-6 text-center border-white/[0.03] bg-gradient-to-br from-indigo-500/[0.02] to-transparent group hover:-translate-y-1 transition-all">
+                      <span className="inline-flex px-3 py-1 rounded-full text-[10px] font-black bg-slate-900/80 text-slate-400 border border-white/[0.03] mb-4 uppercase tracking-widest group-hover:text-indigo-400 transition-colors">{env}</span>
+                      <p className="text-3xl font-black text-white group-hover:scale-110 transition-transform">{avg}s</p>
+                      <p className="text-[10px] font-black text-slate-600 mt-2 uppercase tracking-widest">{d.count} Historical Runs</p>
                     </div>
                   );
                 })}
@@ -178,18 +182,18 @@ export default async function PerformancePage() {
 
 function DurationCard({ label, value, icon, color }: { label: string; value: string; icon: React.ReactNode; color: string }) {
   const map: Record<string, string> = {
-    indigo: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
-    purple: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-    emerald: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    rose: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+    indigo: "from-indigo-500/10 text-indigo-400 border-indigo-500/20 group-hover:from-indigo-500/25",
+    purple: "from-purple-500/10 text-purple-400 border-purple-500/20 group-hover:from-purple-500/25",
+    emerald: "from-emerald-500/10 text-emerald-400 border-emerald-500/20 group-hover:from-emerald-500/25",
+    rose: "from-rose-500/10 text-rose-400 border-rose-500/20 group-hover:from-rose-500/25",
   };
   return (
-    <div className="glass rounded-xl p-4">
-      <div className="flex items-center gap-2 mb-2">
-        <div className={`p-1.5 rounded-md border ${map[color]}`}>{icon}</div>
-        <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest">{label}</span>
+    <div className="glass rounded-2xl p-5 group transition-all relative overflow-hidden border-white/[0.03] bg-gradient-to-br from-transparent to-transparent hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/5 hover:to-white/[0.01]">
+      <div className="flex items-center gap-3 mb-4">
+        <div className={`p-2 rounded-lg bg-gradient-to-br border shadow-sm transition-all duration-300 group-hover:scale-110 ${map[color]}`}>{icon}</div>
+        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest group-hover:text-slate-400 transition-colors">{label}</span>
       </div>
-      <p className="text-xl font-bold text-white font-mono">{value}</p>
+      <p className="text-2xl font-black text-white font-mono tracking-tighter transition-transform group-hover:translate-x-1">{value}</p>
     </div>
   );
 }
