@@ -114,6 +114,11 @@ export default function Sidebar() {
         {dashboardItems.map(renderNavItem)}
 
         <div className="pt-6">
+          <p className="px-3 pb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Intelligence</p>
+          {renderNavItem({ href: "/command-center", label: "Command Center", icon: Sparkles, minGlobalRole: null })}
+        </div>
+
+        <div className="pt-6">
           <p className="px-3 pb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Analytics</p>
           {analyticsItems.map(renderNavItem)}
         </div>
