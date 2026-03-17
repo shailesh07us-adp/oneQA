@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   FolderOpen,
   Key,
+  Sparkles,
 } from "lucide-react";
 import { relativeTime } from "@/lib/utils";
 import { TestCaseTrendChart, DurationTrendChart, BuildScoreGauge } from "@/components/TrendChart";
@@ -182,7 +183,7 @@ export default function DashboardPage() {
             <div className="space-y-3">
               <QuickLink href="/runs" icon={<CheckCircle2 className="w-5 h-5" />} label="Test Runs" desc="Execution history" color="indigo" />
               <QuickLink href="/projects" icon={<FolderOpen className="w-5 h-5" />} label="Projects" desc="Manage & API keys" color="purple" />
-              <QuickLink href="/success-rates" icon={<BarChart3 className="w-5 h-5" />} label="Analytics" desc="Quality metrics" color="emerald" />
+              <QuickLink href="/predictive" icon={<Sparkles className="w-5 h-5" />} label="Predictive Analysis" desc="ADO & forecasting" color="emerald" />
             </div>
           </div>
         </div>
