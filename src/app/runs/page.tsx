@@ -193,35 +193,97 @@ export default function RunsPage() {
                     <div className="bg-white/[0.01] border-t border-white/[0.03]">
                       {run.suites.map((suite: any) => {
                         const isCollapsed = collapsedSuites.has(suite.id);
+                        
+                        // Suite-level analytics
+                        const suiteTests = suite.tests || [];
+                        const suitePassed = suiteTests.filter((t: any) => t.status === "passed").length;
+                        const suiteFailed = suiteTests.filter((t: any) => t.status === "failed").length;
+                        const suiteSkipped = suiteTests.length - suitePassed - suiteFailed;
+                        
+                        // Failures-first sorting
+                        const sortedTests = [...suiteTests].sort((a, b) => {
+                          if (a.status === "failed" && b.status !== "failed") return -1;
+                          if (a.status !== "failed" && b.status === "failed") return 1;
+                          return 0;
+                        });
+
                         return (
-                          <div key={suite.id}>
-                            <button
-                              onClick={() => toggleSuite(suite.id)}
-                              className="w-full px-6 py-3 border-b border-white/[0.02] flex items-center justify-between hover:bg-white/[0.02] transition-colors group/suite"
-                            >
-                              <div className="flex items-center gap-3">
-                                {isCollapsed ? <ChevronRightIcon className="w-4 h-4 text-slate-600" /> : <ChevronDown className="w-4 h-4 text-indigo-400" />}
-                                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest group-hover/suite:text-slate-200 transition-colors">
-                                  {suite.title}
-                                </p>
-                              </div>
-                              <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{suite.tests.length} Total Tests</span>
-                            </button>
-                            {!isCollapsed && (
-                              <div className="divide-y divide-white/[0.01]">
-                                {suite.tests.map((test: any) => (
-                                  <div key={test.id} className="px-10 py-3 flex items-center justify-between hover:bg-indigo-500/[0.03] transition-colors group/test">
-                                    <div className="flex items-center gap-4">
-                                      <div className="shrink-0">
-                                        {test.status === "passed" ? <CheckCircle2 className="w-4 h-4 text-emerald-500/60" /> : test.status === "failed" ? <XCircle className="w-4 h-4 text-rose-500/60" /> : <SkipForward className="w-4 h-4 text-amber-500/60" />}
-                                      </div>
-                                      <span className="text-sm font-medium text-slate-300 group-hover/test:text-white transition-colors">{test.title}</span>
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                      <span className="text-[10px] font-mono text-slate-600 group-hover/test:text-indigo-400 transition-colors">{(test.duration / 1000).toFixed(2)}s</span>
-                                    </div>
-                                  </div>
+                          <div key={suite.id} className="border-b border-white/[0.02] last:border-0">
+                            {/* Suite Header with Health Ribbon */}
+                            <div className="relative group/suite">
+                              {/* Health Ribbon (Pixel Grid) */}
+                              <div className="absolute top-0 left-0 w-full h-[2px] flex">
+                                {suiteTests.map((t: any, i: number) => (
+                                  <div 
+                                    key={t.id} 
+                                    className={`flex-1 h-full ${t.status === 'passed' ? 'bg-emerald-500/40' : t.status === 'failed' ? 'bg-rose-500/60' : 'bg-amber-500/40'}`}
+                                    title={`${t.title}: ${t.status}`}
+                                  />
                                 ))}
+                              </div>
+
+                              <div className="px-6 py-4 flex items-center justify-between">
+                                <button
+                                  onClick={() => toggleSuite(suite.id)}
+                                  className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                                >
+                                  {isCollapsed ? <ChevronRightIcon className="w-4 h-4 text-slate-600" /> : <ChevronDown className="w-4 h-4 text-indigo-400" />}
+                                  <div className="text-left">
+                                    <p className="text-[11px] font-black text-slate-200 uppercase tracking-[0.15em]">
+                                      {suite.title}
+                                    </p>
+                                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mt-1">
+                                      {suiteTests.length} Tests <span className="mx-1">·</span> 
+                                      <span className="text-emerald-500/80">{suitePassed}P</span> <span className="mx-0.5">/</span>
+                                      <span className="text-rose-500/80">{suiteFailed}F</span> <span className="mx-0.5">/</span>
+                                      <span className="text-amber-500/80">{suiteSkipped}S</span>
+                                    </p>
+                                  </div>
+                                </button>
+
+                                <div className="flex items-center gap-4">
+                                  {/* Local "Intelligence" badges */}
+                                  {suiteFailed > 0 && (
+                                    <span className="px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20 text-[9px] font-black text-rose-400 uppercase tracking-widest animate-pulse">
+                                      Action Required
+                                    </span>
+                                  )}
+                                  <div className="h-4 w-px bg-white/5" />
+                                  <span className="text-[10px] font-mono text-slate-600 uppercase tracking-widest">
+                                    {Math.round(suiteTests.reduce((acc: number, t: any) => acc + (t.duration || 0), 0) / 1000)}s Total
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {!isCollapsed && (
+                              <div className="bg-black/20 px-4 pb-4">
+                                <div className="rounded-2xl border border-white/[0.03] overflow-hidden divide-y divide-white/[0.02] bg-[#0c1021]/50">
+                                  {sortedTests.map((test: any) => (
+                                    <div key={test.id} className="px-6 py-2.5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group/test">
+                                      <div className="flex items-center gap-4">
+                                        <div className="shrink-0">
+                                          {test.status === "passed" ? (
+                                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500/60" />
+                                          ) : test.status === "failed" ? (
+                                            <XCircle className="w-3.5 h-3.5 text-rose-500" />
+                                          ) : (
+                                            <SkipForward className="w-3.5 h-3.5 text-amber-500/60" />
+                                          )}
+                                        </div>
+                                        <span className={`text-[13px] font-medium transition-colors ${test.status === 'failed' ? 'text-rose-400 font-bold' : 'text-slate-400 group-hover/test:text-slate-200'}`}>
+                                          {test.title}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-3">
+                                        {test.status === 'failed' && (
+                                          <span className="text-[8px] font-black text-rose-500/50 uppercase tracking-widest px-1.5 py-0.5 border border-rose-500/10 rounded">Regression</span>
+                                        )}
+                                        <span className="text-[10px] font-mono text-slate-600">{(test.duration / 1000).toFixed(2)}s</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
                             )}
                           </div>
