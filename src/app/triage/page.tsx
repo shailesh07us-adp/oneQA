@@ -165,7 +165,7 @@ export default function TriagePage() {
     return (
       <div className="flex h-screen w-full overflow-hidden bg-[#0a0e1a]">
         <Sidebar />
-        <main className="flex-1 flex flex-col items-center justify-center p-20 relative overflow-hidden">
+        <main className="flex-1 flex flex-col items-center justify-center p-10 relative overflow-hidden">
           {/* Background Ambient Effects */}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(16,185,129,0.05),transparent_70%)]" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-500/5 blur-[120px] rounded-full opacity-20" />
@@ -173,15 +173,15 @@ export default function TriagePage() {
           {/* Radar Scanning Core */}
           <div className="relative mb-12">
             <div className="absolute inset-0 bg-emerald-500/20 rounded-full animate-ping opacity-25" />
-            <div className="relative w-32 h-32 rounded-full border-2 border-emerald-500/30 flex items-center justify-center bg-black/40 backdrop-blur-xl group">
+            <div className="relative w-20 h-20 rounded-full border-2 border-emerald-500/30 flex items-center justify-center bg-black/40 backdrop-blur-xl group">
               <div className="absolute inset-0 rounded-full border border-emerald-500/20 animate-[spin_4s_linear_infinite]" 
                    style={{ background: 'conic-gradient(from 0deg, transparent 0% 80%, rgba(16,185,129,0.3) 100%)' }} />
-              <ShieldCheck className="w-12 h-12 text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
+              <ShieldCheck className="w-8 h-8 text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
             </div>
           </div>
 
           <div className="text-center relative z-10">
-            <h2 className="text-5xl font-black text-white tracking-tighter mb-4 flex items-center justify-center gap-4">
+            <h2 className="text-3xl font-black text-white tracking-tighter mb-4 flex items-center justify-center gap-4">
               All Clear
               <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center h-fit">
                 <span className="text-xs font-black text-emerald-400 uppercase tracking-widest leading-none">Oracle Verified</span>
@@ -528,8 +528,8 @@ export default function TriagePage() {
       {/* Conflict Resolution Modal */}
       {conflict && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="w-full max-w-md glass rounded-[2.5rem] p-10 bg-gradient-to-br from-rose-500/10 to-transparent border-rose-500/20 shadow-2xl shadow-rose-900/20">
-            <div className="flex items-center gap-4 mb-6">
+          <div className="w-full max-w-sm glass rounded-2xl p-6 bg-gradient-to-br from-rose-500/10 to-transparent border-rose-500/20 shadow-2xl shadow-rose-900/20">
+            <div className="flex items-center gap-4 mb-5">
               <div className="p-3 rounded-2xl bg-rose-500/20 border border-rose-500/30">
                 <AlertOctagon className="w-8 h-8 text-rose-500 animate-pulse" />
               </div>

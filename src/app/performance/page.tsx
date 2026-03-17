@@ -189,7 +189,7 @@ function DurationCard({ label, value, icon, color }: { label: string; value: str
   };
 
   return (
-    <div className={`glass rounded-[2rem] p-7 border-t-4 transition-all duration-500 group hover:-translate-y-1 ${map[color]}`}>
+    <div className={`glass rounded-2xl p-5 border-t-2 transition-all duration-500 group hover:-translate-y-0.5 ${map[color]}`}>
       <div className="flex items-center justify-between mb-6">
         <div className="p-2 rounded-xl bg-slate-900/50 border border-white/5 transition-transform group-hover:scale-110 duration-500">
           {icon}
@@ -197,8 +197,8 @@ function DurationCard({ label, value, icon, color }: { label: string; value: str
         <span className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Detailed</span>
       </div>
       <div>
-        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">{label}</p>
-        <p className="text-4xl font-black text-white tracking-tighter group-hover:scale-105 transition-transform origin-left duration-500">{value}</p>
+        <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-0.5">{label}</p>
+        <p className="text-2xl font-black text-white tracking-tighter group-hover:scale-105 transition-transform origin-left duration-500">{value}</p>
       </div>
     </div>
   );

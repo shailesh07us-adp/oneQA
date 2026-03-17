@@ -77,7 +77,7 @@ export default function CommandCenterPage() {
         <div className="p-8 space-y-8 max-w-7xl mx-auto w-full">
           {/* Top Row: Confidence Oracle */}
           <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-4 glass rounded-3xl p-8 relative overflow-hidden flex flex-col items-center justify-center text-center group border-indigo-500/20 shadow-2xl shadow-indigo-500/5">
+            <div className="lg:col-span-4 glass rounded-2xl p-5 relative overflow-hidden flex flex-col items-center justify-center text-center group border-indigo-500/20 shadow-2xl shadow-indigo-500/5">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500" />
               <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
               
@@ -97,7 +97,7 @@ export default function CommandCenterPage() {
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-5xl font-black text-white">{metrics.score}<span className="text-lg text-slate-500 font-medium">%</span></span>
+                  <span className="text-3xl font-black text-white">{metrics.score}<span className="text-sm text-slate-500 font-medium">%</span></span>
                   <span className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${isSafe ? 'text-indigo-400' : 'text-rose-400'}`}>Confidence</span>
                 </div>
               </div>
