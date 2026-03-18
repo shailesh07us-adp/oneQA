@@ -15,6 +15,7 @@ import {
   X,
   Sparkles,
   Clock,
+  Zap,
 } from "lucide-react";
 import { relativeTime, downloadCsv } from "@/lib/utils";
 
@@ -156,6 +157,8 @@ export default function RunsPage() {
                 const totalTests = run.suites.reduce((s: number, suite: any) => s + suite.tests.length, 0);
                 const passedTests = run.suites.reduce((s: number, suite: any) => s + suite.tests.filter((t: any) => t.status === "passed").length, 0);
                 const failedTests = run.suites.reduce((s: number, suite: any) => s + suite.tests.filter((t: any) => t.status === "failed").length, 0);
+                const flakyTests = run.suites.reduce((s: number, suite: any) => s + suite.tests.filter((t: any) => t.status === "flaky").length, 0);
+                const skippedTests = run.suites.reduce((s: number, suite: any) => s + suite.tests.filter((t: any) => t.status === "skipped").length, 0);
                 const isPassed = run.status === "passed";
 
                 return (
@@ -197,8 +200,10 @@ export default function RunsPage() {
                         <div className="text-right border-l border-white/5 pl-8">
                           <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-2">Outcome</p>
                           <div className="flex items-center gap-4 text-[12px] font-black">
-                            <span className="flex items-center gap-2 text-emerald-400"><CheckCircle2 className="w-4 h-4" /> {passedTests}</span>
-                            <span className="flex items-center gap-2 text-rose-400"><XCircle className="w-4 h-4" /> {failedTests}</span>
+                            <span className="flex items-center gap-2 text-emerald-400" title="Passed"><CheckCircle2 className="w-4 h-4" /> {passedTests}</span>
+                            {failedTests > 0 && <span className="flex items-center gap-2 text-rose-400" title="Failed"><XCircle className="w-4 h-4" /> {failedTests}</span>}
+                            {flakyTests > 0 && <span className="flex items-center gap-2 text-amber-500" title="Flaky"><Zap className="w-4 h-4 fill-amber-500/20" /> {flakyTests}</span>}
+                            {skippedTests > 0 && <span className="flex items-center gap-2 text-slate-500" title="Skipped"><SkipForward className="w-4 h-4" /> {skippedTests}</span>}
                           </div>
                         </div>
                       </div>

@@ -49,6 +49,11 @@ function TriageContent() {
   const [selectedFailure, setSelectedFailure] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [triageStatus, setTriageStatus] = useState<string | null>(null);
+  const [patterns, setPatterns] = useState<any[]>([]);
+  const [showKBManager, setShowKBManager] = useState(false);
+  const [conflict, setConflict] = useState<{ predicted: string, incoming: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     async function loadExpertTriage() {
@@ -92,9 +97,6 @@ function TriageContent() {
     loadExpertTriage();
   }, [runId]);
 
-  const [showKBManager, setShowKBManager] = useState(false);
-  const [conflict, setConflict] = useState<{ predicted: string, incoming: string } | null>(null);
-  const [patterns, setPatterns] = useState<any[]>([]);
 
   const handleTriageAll = async (status: string, override = false) => {
     if (!selectedCluster) return;
@@ -129,10 +131,6 @@ function TriageContent() {
       setTriageStatus('Error');
     }
   };
-
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const [copied, setCopied] = useState(false);
 
   const handleCopyTrace = () => {
     if (selectedFailure?.stack) {
@@ -366,12 +364,12 @@ function TriageContent() {
                      <h2 className="text-4xl font-black text-white tracking-tighter mb-4 leading-tight">{selectedFailure.title}</h2>
                      <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2">
-                          <User className="w-3.5 h-3.5 text-slate-600" />
-                          <span className="text-xs text-slate-400">Suite: <span className="text-white font-medium">{selectedFailure.suite}</span></span>
-                        </div>
-                        <div className="flex items-center gap-2">
                           <Clock className="w-3.5 h-3.5 text-slate-600" />
                           <span className="text-xs text-slate-400">Environment: <span className={`font-bold ${selectedFailure.env === 'PRODUCTION' ? 'text-rose-400' : 'text-amber-400'}`}>{selectedFailure.env}</span></span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <User className="w-3.5 h-3.5 text-slate-600" />
+                          <span className="text-xs text-slate-400">Suite: <span className="text-white font-medium">{selectedFailure.suite}</span></span>
                         </div>
                      </div>
                   </div>
@@ -401,8 +399,8 @@ function TriageContent() {
               )}
 
               {/* Expert Insight Panel */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="md:col-span-2 glass rounded-[2.5rem] p-10 bg-gradient-to-br from-indigo-500/[0.08] to-transparent border-white/[0.03] relative overflow-hidden">
+              <div className="grid grid-cols-1 gap-6">
+                <div className="glass rounded-[2.5rem] p-10 bg-gradient-to-br from-indigo-500/[0.08] to-transparent border-white/[0.03] relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-8 opacity-10">
                     <Sparkles className="w-32 h-32 text-indigo-400" />
                   </div>
@@ -440,26 +438,6 @@ function TriageContent() {
                       </div>
                     </div>
                   )}
-                </div>
-
-                <div className="glass rounded-[2.5rem] p-10 bg-black/40 border-white/[0.03] flex flex-col justify-between">
-                  <div>
-                    <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-6">Environment Impact</h4>
-                    <div className="space-y-4">
-                      {['PRODUCTION', 'STAGING', 'DEV'].map(env => {
-                        const isAffected = selectedCluster?.envList.includes(env);
-                        return (
-                          <div key={env} className={`flex items-center justify-between p-4 rounded-2xl border ${isAffected ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' : 'bg-white/[0.02] border-white/[0.02] text-slate-700 opacity-40'}`}>
-                            <span className="text-xs font-black tracking-widest">{env}</span>
-                            {isAffected ? <ShieldAlert className="w-4 h-4" /> : <div className="w-4 h-4 rounded-full border border-slate-800" />}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                  <div className="mt-8 pt-8 border-t border-white/5">
-                    <p className="text-[10px] text-slate-600 font-black uppercase tracking-widest text-center">Calculated Priority: {selectedCluster?.severity}</p>
-                  </div>
                 </div>
               </div>
 
