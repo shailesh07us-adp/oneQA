@@ -41,7 +41,7 @@ const analyticsItems = [
 ];
 
 const adminItems = [
-  { href: "/users", label: "Users", icon: Users, minGlobalRole: "ADMIN" as const },
+  { href: "/users", label: "User Management", icon: Users, minGlobalRole: "ADMIN" as const },
 ];
 
 
@@ -51,6 +51,7 @@ export default function Sidebar() {
   const { data: session } = useSession();
   const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
   const [triageCount, setTriageCount] = useState<number | null>(null);
+  const [pendingApprovalsCount, setPendingApprovalsCount] = useState<number | null>(null);
 
   useEffect(() => {
     // Reset navigating state when pathname changes (navigation complete)
@@ -58,20 +59,21 @@ export default function Sidebar() {
   }, [pathname]);
 
   useEffect(() => {
-    async function fetchTriageCount() {
+    async function fetchPendingApprovalsCount() {
+      if (userRole !== "ADMIN") return;
       try {
-        const res = await fetch("/api/runs?limit=100&status=failed");
+        const res = await fetch("/api/admin/users/approve");
         if (res.ok) {
           const data = await res.json();
-          const clusters = clusterFailures(data.runs || []);
-          setTriageCount(clusters.length);
+          setPendingApprovalsCount(data.length);
         }
       } catch (e) {
-        console.error("Sidebar triage count fetch failed", e);
+        console.error("Sidebar pending approvals fetch failed", e);
       }
     }
     fetchTriageCount();
-  }, [pathname]); // Refresh on navigation so badge stays in sync
+    fetchPendingApprovalsCount();
+  }, [pathname, userRole]); // Refresh on navigation so badge stays in sync
 
   const userName = session?.user?.name || session?.user?.email || "User";
   const userRole = ((session?.user as any)?.globalRole || "USER") as string;
@@ -161,9 +163,12 @@ export default function Sidebar() {
         {canSee("ADMIN") && (
           <div className="pt-6">
             <p className="px-3 pb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Administration</p>
-            {renderNavItem({ href: "/admin/approvals", label: "Approvals", icon: ShieldCheck, minGlobalRole: "ADMIN" })}
-            {renderNavItem({ href: "/users", label: "Users & Roles", icon: Users, minGlobalRole: "ADMIN" })}
-            {renderNavItem({ href: "/api-keys", label: "Registry & API Keys", icon: Key, minGlobalRole: "ADMIN" })}
+            {adminItems.map(item => {
+              const badge = item.label === "User Management" && pendingApprovalsCount !== null && pendingApprovalsCount > 0
+                ? pendingApprovalsCount.toString()
+                : (item as any).badge;
+              return renderNavItem({ ...item, badge });
+            })}
           </div>
         )}
 

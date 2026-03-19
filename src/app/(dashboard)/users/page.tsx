@@ -11,6 +11,9 @@ import {
   RefreshCw,
   UserCheck,
   AlertTriangle,
+  Clock,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { relativeTime } from "@/lib/utils";
 import { toast } from "sonner";
@@ -31,18 +34,23 @@ export default function UsersPage() {
   const [creating, setCreating] = useState(false);
   const [editingRole, setEditingRole] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"users" | "approvals">("users");
+  const [pendingUsers, setPendingUsers] = useState<any[]>([]);
+  const [processingApproval, setProcessingApproval] = useState<string | null>(null);
 
   const currentUserId = (session?.user as any)?.id;
   const currentRole = (session?.user as any)?.globalRole;
 
   const fetchUsersAndProjects = async () => {
     setLoading(true);
-    const [usersRes, projectsRes] = await Promise.all([
+    const [usersRes, projectsRes, pendingRes] = await Promise.all([
       fetch("/api/users"),
-      fetch("/api/projects")
+      fetch("/api/projects"),
+      fetch("/api/admin/users/approve")
     ]);
     if (usersRes.ok) setUsers(await usersRes.json());
     if (projectsRes.ok) setProjects(await projectsRes.json());
+    if (pendingRes.ok) setPendingUsers(await pendingRes.json());
     setLoading(false);
   };
 
@@ -96,6 +104,27 @@ export default function UsersPage() {
     fetchUsersAndProjects();
   };
 
+  const handleApprovalAction = async (userId: string, action: "APPROVE" | "REJECT") => {
+    setProcessingApproval(userId);
+    try {
+      const res = await fetch("/api/admin/users/approve", {
+        method: "POST",
+        body: JSON.stringify({ userId, action }),
+        headers: { "Content-Type": "application/json" },
+      });
+      if (res.ok) {
+        toast.success(`User ${action === "APPROVE" ? "approved" : "rejected"} successfully`);
+        fetchUsersAndProjects();
+      } else {
+        toast.error(`Failed to ${action.toLowerCase()} user`);
+      }
+    } catch (e) {
+      toast.error("An error occurred");
+    } finally {
+      setProcessingApproval(null);
+    }
+  };
+
   if (currentRole !== "ADMIN") {
     return (
       <div className="flex-1 flex items-center justify-center bg-[#0a0e1a]">
@@ -122,16 +151,44 @@ export default function UsersPage() {
 
         <div className="p-8 max-w-5xl mx-auto w-full">
           {/* Role Legend */}
-          <div className="flex items-center gap-4 mb-6 fade-in-up">
-            {Object.entries(ROLE_BADGES).map(([role, badge]) => (
-              <div key={role} className="flex items-center gap-2">
-                <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-medium border ${badge.cls}`}>{badge.label}</span>
-                <span className="text-xs text-slate-600">
-                  {role === "ADMIN" ? "Full access" : role === "PROJECT_LEAD" ? "Projects + API keys" : "View only"}
+          <div className="flex items-center gap-6 mb-8 border-b border-slate-800/60 pb-px">
+            <button 
+              onClick={() => setActiveTab("users")}
+              className={`pb-4 text-sm font-semibold transition-all relative ${activeTab === "users" ? "text-indigo-400" : "text-slate-500 hover:text-slate-300"}`}
+            >
+              Active Users
+              {activeTab === "users" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]" />}
+            </button>
+            <button 
+              onClick={() => setActiveTab("approvals")}
+              className={`pb-4 text-sm font-semibold transition-all relative flex items-center gap-2 ${activeTab === "approvals" ? "text-indigo-400" : "text-slate-500 hover:text-slate-300"}`}
+            >
+              Pending Approvals
+              {pendingUsers.length > 0 && (
+                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-bold">
+                  {pendingUsers.length}
                 </span>
-              </div>
-            ))}
+              )}
+              {activeTab === "approvals" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]" />}
+            </button>
           </div>
+
+          {activeTab === "users" ? (
+            <div className="flex items-center gap-4 mb-6 fade-in-up">
+              {Object.entries(ROLE_BADGES).map(([role, badge]) => (
+                <div key={role} className="flex items-center gap-2">
+                  <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-medium border ${badge.cls}`}>{badge.label}</span>
+                  <span className="text-xs text-slate-600">
+                    {role === "ADMIN" ? "Full access" : "View only"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="mb-6 fade-in-up">
+              <p className="text-xs text-slate-500">Users waiting for account verification and access assignment.</p>
+            </div>
+          )}
 
           {loading ? (
             <div className="glass rounded-xl overflow-hidden mt-6">
@@ -140,6 +197,7 @@ export default function UsersPage() {
                   <tr className="border-b border-slate-800/60">
                     <th className="px-6 py-3.5"><Skeleton className="w-16 h-4" /></th>
                     <th className="px-6 py-3.5"><Skeleton className="w-12 h-4" /></th>
+                    <th className="px-6 py-3.5"><Skeleton className="w-24 h-4" /></th>
                     <th className="px-6 py-3.5"><Skeleton className="w-16 h-4" /></th>
                     <th className="px-6 py-3.5"><Skeleton className="w-12 h-4 ml-auto" /></th>
                   </tr>
@@ -155,6 +213,7 @@ export default function UsersPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4"><Skeleton className="w-16 h-6 rounded-md" /></td>
+                      <td className="px-6 py-4"><Skeleton className="w-32 h-4" /></td>
                       <td className="px-6 py-4"><Skeleton className="w-20 h-4" /></td>
                       <td className="px-6 py-4 flex justify-end"><Skeleton className="w-8 h-8 rounded-md" /></td>
                     </tr>
@@ -164,74 +223,142 @@ export default function UsersPage() {
             </div>
           ) : (
             <div className="glass rounded-xl overflow-hidden fade-in-up">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-slate-800/60">
-                    <th className="px-6 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">User</th>
-                    <th className="px-6 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Role</th>
-                    <th className="px-6 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Created</th>
-                    <th className="px-6 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/40">
-                  {users.map((user) => {
-                    const badge = ROLE_BADGES[user.globalRole] || ROLE_BADGES.USER;
-                    const isSelf = user.id === currentUserId;
-                    return (
-                      <tr key={user.id} className="hover:bg-slate-800/30 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
-                              {(user.name || user.email).slice(0, 2).toUpperCase()}
+              {activeTab === "users" ? (
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-slate-800/60">
+                      <th className="px-6 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">User</th>
+                      <th className="px-6 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Role</th>
+                      <th className="px-6 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Projects</th>
+                      <th className="px-6 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Created</th>
+                      <th className="px-6 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/40">
+                    {users.map((user) => {
+                      const badge = ROLE_BADGES[user.globalRole] || ROLE_BADGES.USER;
+                      const isSelf = user.id === currentUserId;
+                      return (
+                        <tr key={user.id} className="hover:bg-slate-800/30 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
+                                {(user.name || user.email).slice(0, 2).toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-white">{user.name || "—"} {isSelf && <span className="text-xs text-slate-500">(you)</span>}</p>
+                                <p className="text-xs text-slate-500">{user.email}</p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="text-sm font-medium text-white">{user.name || "—"} {isSelf && <span className="text-xs text-slate-500">(you)</span>}</p>
-                              <p className="text-xs text-slate-500">{user.email}</p>
+                          </td>
+                          <td className="px-6 py-4">
+                            {editingRole === user.id ? (
+                              <select
+                                value={user.globalRole}
+                                onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                                onBlur={() => setEditingRole(null)}
+                                autoFocus
+                                className="bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-indigo-500"
+                              >
+                                <option value="ADMIN">Admin</option>
+                                <option value="USER">User</option>
+                              </select>
+                            ) : (
+                              <button
+                                onClick={() => !isSelf && setEditingRole(user.id)}
+                                disabled={isSelf}
+                                className={`inline-flex px-2.5 py-1 rounded-md text-xs font-medium border ${badge.cls} ${isSelf ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:opacity-80"}`}
+                              >
+                                {badge.label}
+                              </button>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-wrap gap-1 max-w-xs">
+                              {user.memberships?.length > 0 ? (
+                                user.memberships.map((m: any, idx: number) => (
+                                  <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                                    {m.project.name}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="text-xs text-slate-600 italic">No projects</span>
+                              )}
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          {editingRole === user.id ? (
-                            <select
-                              value={user.globalRole}
-                              onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                              onBlur={() => setEditingRole(null)}
-                              autoFocus
-                              className="bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-indigo-500"
-                            >
-                              <option value="ADMIN">Admin</option>
-                              <option value="USER">User</option>
-                            </select>
-                          ) : (
-                            <button
-                              onClick={() => !isSelf && setEditingRole(user.id)}
-                              disabled={isSelf}
-                              className={`inline-flex px-2.5 py-1 rounded-md text-xs font-medium border ${badge.cls} ${isSelf ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:opacity-80"}`}
-                            >
-                              {badge.label}
-                            </button>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-slate-400">{relativeTime(user.createdAt)}</td>
-                        <td className="px-6 py-4 text-right">
-                          {isSelf ? (
-                            <span className="text-xs text-slate-600">—</span>
-                          ) : deleteConfirm === user.id ? (
-                            <div className="flex items-center gap-2 justify-end">
-                              <button onClick={() => handleDelete(user.id)} className="text-xs text-rose-400 hover:text-rose-300 font-medium">Confirm</button>
-                              <button onClick={() => setDeleteConfirm(null)} className="text-xs text-slate-500 hover:text-white">Cancel</button>
-                            </div>
-                          ) : (
-                            <button onClick={() => setDeleteConfirm(user.id)} className="p-1.5 rounded-md text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 transition-colors" title="Delete user">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
-                        </td>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-400">{relativeTime(user.createdAt)}</td>
+                          <td className="px-6 py-4 text-right">
+                            {isSelf ? (
+                              <span className="text-xs text-slate-600">—</span>
+                            ) : deleteConfirm === user.id ? (
+                              <div className="flex items-center gap-2 justify-end">
+                                <button onClick={() => handleDelete(user.id)} className="text-xs text-rose-400 hover:text-rose-300 font-medium">Confirm</button>
+                                <button onClick={() => setDeleteConfirm(null)} className="text-xs text-slate-500 hover:text-white">Cancel</button>
+                              </div>
+                            ) : (
+                              <button onClick={() => setDeleteConfirm(user.id)} className="p-1.5 rounded-md text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 transition-colors" title="Delete user">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              ) : (
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-slate-800/60">
+                      <th className="px-6 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Pending User</th>
+                      <th className="px-6 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Requested</th>
+                      <th className="px-6 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider text-right">Decisions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/40">
+                    {pendingUsers.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="px-6 py-12 text-center text-slate-500 text-sm">No pending registration requests.</td>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                    ) : (
+                      pendingUsers.map((user) => (
+                        <tr key={user.id} className="hover:bg-slate-800/30 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 text-xs font-bold">
+                                {user.name?.charAt(0) || user.email.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-white">{user.name || "Anonymous"}</p>
+                                <p className="text-xs text-slate-500">{user.email}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-400">{relativeTime(user.requestedAt || user.createdAt)}</td>
+                          <td className="px-6 py-4 text-right">
+                             <div className="flex items-center justify-end gap-2">
+                               <button 
+                                 disabled={processingApproval === user.id}
+                                 onClick={() => handleApprovalAction(user.id, "REJECT")}
+                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-medium hover:bg-rose-500/20 transition-all"
+                               >
+                                 <XCircle className="w-3.5 h-3.5" /> Reject
+                               </button>
+                               <button 
+                                 disabled={processingApproval === user.id}
+                                 onClick={() => handleApprovalAction(user.id, "APPROVE")}
+                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium hover:bg-emerald-500/20 transition-all"
+                               >
+                                 <CheckCircle2 className="w-3.5 h-3.5" /> Approve
+                               </button>
+                             </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              )}
             </div>
           )}
         </div>

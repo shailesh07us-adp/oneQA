@@ -16,6 +16,16 @@ export async function GET() {
       name: true,
       globalRole: true,
       createdAt: true,
+      memberships: {
+        select: {
+          role: true,
+          project: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
     },
   });
 
