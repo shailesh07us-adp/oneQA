@@ -18,6 +18,11 @@ import {
   TrendingUp,
   Sparkles,
   AlertTriangle,
+  MessageSquare,
+  HelpCircle,
+  Menu,
+  ShieldCheck,
+  Key,
 } from "lucide-react";
 import { clusterFailures } from "@/lib/intelligence";
 
@@ -156,7 +161,9 @@ export default function Sidebar() {
         {canSee("ADMIN") && (
           <div className="pt-6">
             <p className="px-3 pb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Administration</p>
-            {adminItems.map(renderNavItem)}
+            {renderNavItem({ href: "/admin/approvals", label: "Approvals", icon: ShieldCheck, minGlobalRole: "ADMIN" })}
+            {renderNavItem({ href: "/users", label: "Users & Roles", icon: Users, minGlobalRole: "ADMIN" })}
+            {renderNavItem({ href: "/api-keys", label: "Registry & API Keys", icon: Key, minGlobalRole: "ADMIN" })}
           </div>
         )}
 

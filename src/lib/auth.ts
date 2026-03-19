@@ -23,23 +23,30 @@ export const authOptions: NextAuthOptions = {
         const isValid = await bcrypt.compare(credentials.password, user.passwordHash);
         if (!isValid) return null;
 
+        if (user.status !== "APPROVED") {
+          throw new Error("Your account is pending approval by an administrator.");
+        }
+
         return {
           id: user.id,
           email: user.email,
           name: user.name || user.email,
           globalRole: user.globalRole,
+          status: user.status,
         };
       },
     }),
   ],
   pages: {
     signIn: "/login",
+    error: "/login",
   },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.globalRole = (user as any).globalRole;
         token.id = user.id;
+        token.status = (user as any).status;
       }
       return token;
     },
@@ -47,6 +54,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         (session.user as any).globalRole = token.globalRole;
         (session.user as any).id = token.id;
+        (session.user as any).status = token.status;
       }
       return session;
     },

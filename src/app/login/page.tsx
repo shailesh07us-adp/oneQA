@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { Lock, Mail, Shield, AlertCircle, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -122,14 +124,19 @@ function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-5 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 text-[11px] font-black text-white uppercase tracking-[0.2em] shadow-xl shadow-indigo-500/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
             >
-              {loading ? "Signing in..." : "Sign In"}
+              {loading ? "Signing in..." : (
+                <>
+                  Enter Dashboard
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
           </form>
 
-          <p className="text-xs text-slate-600 text-center">
-            Default credentials: admin@oneqa.dev / admin123
+          <p className="text-center text-slate-500 text-xs font-bold uppercase tracking-widest">
+            New user? <Link href="/register" className="text-indigo-400 hover:text-indigo-300 transition-colors underline underline-offset-4">Register for Access</Link>
           </p>
         </div>
       </div>
