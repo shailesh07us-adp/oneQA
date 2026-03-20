@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Lock, Mail, Shield, AlertCircle, ArrowRight, User, Clock, ShieldCheck, Eye, EyeOff } from "lucide-react";
+import { Lock, Mail, Shield, AlertCircle, ArrowRight, User, Clock, ShieldCheck, Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 function LoginRegisterForms() {
@@ -40,13 +40,15 @@ function LoginRegisterForms() {
       callbackUrl,
     });
 
-    setLoginLoading(false);
-
     if (res?.error) {
       setLoginError("Invalid email or password");
+      setLoginLoading(false);
     } else if (res?.ok) {
       router.push(callbackUrl);
       router.refresh();
+      // Keep loading as true to show 'Redirecting...' during push
+    } else {
+      setLoginLoading(false);
     }
   };
 
@@ -186,7 +188,12 @@ function LoginRegisterForms() {
                   disabled={loginLoading}
                   className="w-full py-5 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 text-[11px] font-black text-white uppercase tracking-[0.2em] shadow-xl shadow-indigo-500/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
                 >
-                  {loginLoading ? "Signing in..." : (
+                  {loginLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      {loginError ? "Signing in..." : "Redirecting..."}
+                    </>
+                  ) : (
                     <>
                       Enter Dashboard
                       <ArrowRight className="w-4 h-4" />
@@ -329,7 +336,12 @@ function LoginRegisterForms() {
                       disabled={registerLoading}
                       className="w-full py-5 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 text-[11px] font-black text-white uppercase tracking-[0.2em] shadow-xl shadow-indigo-500/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3 pt-6"
                     >
-                      {registerLoading ? "Processing..." : (
+                      {registerLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
                         <>
                           Register Account
                           <ArrowRight className="w-4 h-4" />
