@@ -25,6 +25,7 @@ import {
   Key,
 } from "lucide-react";
 import { clusterFailures } from "@/lib/intelligence";
+import { useNavigation } from "./NavigationProvider";
 
 const dashboardItems = [
   { href: "/", label: "Overview", icon: Activity, minGlobalRole: null },
@@ -49,7 +50,7 @@ const adminItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
+  const { navigatingTo, setNavigatingTo } = useNavigation();
   const [triageCount, setTriageCount] = useState<number | null>(null);
   const [pendingApprovalsCount, setPendingApprovalsCount] = useState<number | null>(null);
 
@@ -68,10 +69,6 @@ export default function Sidebar() {
     return userRole === "ADMIN" || userRole === minGlobalRole;
   };
 
-  useEffect(() => {
-    // Reset navigating state when pathname changes (navigation complete)
-    setNavigatingTo(null);
-  }, [pathname]);
 
   useEffect(() => {
     async function fetchTriageCount() {
