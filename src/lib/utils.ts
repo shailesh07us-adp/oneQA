@@ -14,12 +14,25 @@ export function relativeTime(date: Date | string): string {
   return d.toLocaleDateString();
 }
 
-export function downloadCsv(runs: any[], filename: string) {
+interface TestSuite {
+  tests?: { status: string }[];
+}
+
+interface TestRun {
+  project: string;
+  env: string;
+  startTime: string | Date;
+  duration?: number;
+  status: string;
+  suites?: TestSuite[];
+}
+
+export function downloadCsv(runs: TestRun[], filename: string) {
   const headers = ['Project', 'Environment', 'Start Time', 'Duration (s)', 'Status', 'Suites', 'Tests Passed', 'Tests Failed'];
-  const rows = runs.map((run: any) => {
-    const totalTests = run.suites?.reduce((s: number, suite: any) => s + (suite.tests?.length || 0), 0) || 0;
+  const rows = runs.map((run: TestRun) => {
+    const totalTests = run.suites?.reduce((s: number, suite: TestSuite) => s + (suite.tests?.length || 0), 0) || 0;
     const passedTests = run.suites?.reduce(
-      (s: number, suite: any) => s + (suite.tests?.filter((t: any) => t.status === 'passed').length || 0), 0
+      (s: number, suite: TestSuite) => s + (suite.tests?.filter((t) => t.status === 'passed').length || 0), 0
     ) || 0;
     return [
       run.project,

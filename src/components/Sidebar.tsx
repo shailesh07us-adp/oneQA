@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
@@ -18,16 +18,19 @@ import {
   TrendingUp,
   Sparkles,
   AlertTriangle,
-  MessageSquare,
-  HelpCircle,
-  Menu,
-  ShieldCheck,
-  Key,
 } from "lucide-react";
 import { clusterFailures } from "@/lib/intelligence";
 import { useNavigation } from "./NavigationProvider";
 
-const dashboardItems = [
+interface NavItem {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  minGlobalRole: string | null;
+  badge?: string;
+}
+
+const dashboardItems: NavItem[] = [
   { href: "/", label: "Overview", icon: Activity, minGlobalRole: null },
   { href: "/triage", label: "Triage Center", icon: AlertTriangle, minGlobalRole: null },
   { href: "/runs", label: "Test Runs", icon: CheckCircle2, minGlobalRole: null },
@@ -35,14 +38,14 @@ const dashboardItems = [
   { href: "/performance", label: "Performance", icon: Clock, minGlobalRole: null },
 ];
 
-const analyticsItems = [
+const analyticsItems: NavItem[] = [
   { href: "/success-rates", label: "Success Rates", icon: BarChart3, minGlobalRole: null },
   { href: "/predictive", label: "Predictive Analysis", icon: TrendingUp, minGlobalRole: null },
   { href: "/business-value", label: "Business Value", icon: Sparkles, minGlobalRole: null },
 ];
 
-const adminItems = [
-  { href: "/users", label: "User Management", icon: Users, minGlobalRole: "ADMIN" as const },
+const adminItems: NavItem[] = [
+  { href: "/users", label: "User Management", icon: Users, minGlobalRole: "ADMIN" },
 ];
 
 
@@ -54,7 +57,7 @@ export default function Sidebar() {
   const [triageCount, setTriageCount] = useState<number | null>(null);
   const [pendingApprovalsCount, setPendingApprovalsCount] = useState<number | null>(null);
 
-  const userRole = ((session?.user as any)?.globalRole || "USER") as string;
+  const userRole = session?.user?.globalRole || "USER";
   const userName = session?.user?.name || session?.user?.email || "User";
   const initials = userName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
 
@@ -114,15 +117,15 @@ export default function Sidebar() {
     return () => window.removeEventListener("pending-approvals-updated", handleUpdate);
   }, [userRole]);
 
-  const renderNavItem = (item: { href: string; label: string; icon: any; minGlobalRole?: string | null; badge?: string }) => {
-    if (!canSee(item.minGlobalRole || null)) return null;
+  const renderNavItem = (item: NavItem) => {
+    if (!canSee(item.minGlobalRole)) return null;
     const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
     const Icon = item.icon;
     return (
       <Link
         key={item.href}
         href={item.href}
-        onClick={(e) => {
+        onClick={() => {
           if (pathname !== item.href) {
             setNavigatingTo(item.href);
           }
@@ -170,7 +173,7 @@ export default function Sidebar() {
         {dashboardItems.map(item => {
           const badge = item.label === "Triage Center" && triageCount !== null && triageCount > 0 
             ? triageCount.toString() 
-            : (item as any).badge;
+            : item.badge;
           return renderNavItem({ ...item, badge });
         })}
 
@@ -190,7 +193,7 @@ export default function Sidebar() {
             {adminItems.map(item => {
               const badge = item.label === "User Management" && pendingApprovalsCount !== null && pendingApprovalsCount > 0
                 ? pendingApprovalsCount.toString()
-                : (item as any).badge;
+                : item.badge;
               return renderNavItem({ ...item, badge });
             })}
           </div>

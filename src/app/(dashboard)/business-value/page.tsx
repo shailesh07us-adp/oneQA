@@ -1,25 +1,39 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Sidebar from "@/components/Sidebar";
 import { 
-  DollarSign, 
-  Clock, 
-  ShieldCheck, 
   Layers, 
-  TrendingDown, 
-  ArrowRight,
   Sparkles,
   Target,
   Zap,
   TrendingUp,
-  Activity
 } from "lucide-react";
 import { TestingPyramid } from "@/components/TestingPyramid";
 import { Skeleton } from "@/components/ui/skeleton";
 
+interface AdoBusinessData {
+  isLive: boolean;
+  businessValue: {
+    roi: {
+      formattedMoney: string;
+      hoursSaved: number;
+    };
+    escapedDefects: {
+      rate: number;
+    };
+    mttr: {
+      avgDays: number;
+      label: string;
+      color: string;
+    };
+    pyramid: {
+      isHealthy: boolean;
+    };
+  };
+}
+
 export default function BusinessValuePage() {
-  const [adoData, setAdoData] = useState<any>(null);
+  const [adoData, setAdoData] = useState<AdoBusinessData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -136,7 +150,7 @@ export default function BusinessValuePage() {
                     </div>
                     <div className="p-6 rounded-2xl bg-indigo-500/5 border border-indigo-500/10">
                       <p className="text-[11px] text-slate-400 leading-relaxed font-medium italic">
-                        "Your team is currently resolving bugs {Math.abs(adoData.businessValue.mttr.avgDays - 0.4).toFixed(1)} days faster than last month, contributing to a significant leap in sprint velocity."
+                        &quot;Your team is currently resolving bugs {Math.abs(adoData.businessValue.mttr.avgDays - 0.4).toFixed(1)} days faster than last month, contributing to a significant leap in sprint velocity.&quot;
                       </p>
                     </div>
                   </div>

@@ -1,9 +1,34 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 
+interface IngestTest {
+  title: string;
+  status: string;
+  duration?: number;
+  error?: string;
+  stack?: string;
+  project?: string;
+  screenshotPath?: string;
+  tracePath?: string;
+}
+
+interface IngestSuite {
+  title: string;
+  tests: IngestTest[];
+}
+
+interface IngestBody {
+  project: string;
+  env: string;
+  startTime: string;
+  duration: number;
+  status: string;
+  suites: IngestSuite[];
+}
+
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body: IngestBody = await req.json();
     const { project, env, startTime, duration, status, suites } = body;
 
     // The suites array comes from the Playwright reporter
@@ -31,13 +56,13 @@ export async function POST(req: Request) {
         status: status || 'passed',
         duration: duration || 0,
         suites: {
-          create: suites.map((suite: any) => ({
+          create: suites.map((suite: IngestSuite) => ({
             title: suite.title,
             tests: {
-              create: suite.tests.map((test: any) => ({
+              create: suite.tests.map((test: IngestTest) => ({
                 title: test.title,
                 status: test.status,
-                duration: test.duration,
+                duration: test.duration || 0,
                 error: test.error || null,
                 stack: test.stack || null,
                 project: test.project || null,

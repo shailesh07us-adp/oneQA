@@ -42,7 +42,7 @@ export default function SettingsPage() {
             </h2>
             <div className="flex items-center gap-3">
               <span className="inline-flex px-3 py-1 rounded-md text-xs font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                {(session?.user as any)?.role || "ADMIN"}
+                {session?.user?.globalRole || "ADMIN"}
               </span>
               <span className="text-sm text-slate-400">Full access to all projects and settings</span>
             </div>

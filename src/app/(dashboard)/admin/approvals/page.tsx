@@ -3,16 +3,10 @@
 import { useState, useEffect } from "react";
 import { 
   Users, 
-  CheckCircle2, 
-  XCircle, 
   Clock, 
   Search, 
   Shield, 
-  Mail, 
   Calendar,
-  MoreVertical,
-  ThumbsUp,
-  ThumbsDown,
   UserCheck,
   UserX
 } from "lucide-react";

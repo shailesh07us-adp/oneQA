@@ -32,6 +32,40 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import { clusterFailures } from "@/lib/intelligence";
 
+interface TriageFailure {
+  id: string;
+  title: string;
+  suite: string;
+  project: string;
+  env: string;
+  startTime: string;
+  duration: number;
+  error: string | null;
+  stack: string | null;
+  time: string;
+}
+
+interface TriageCluster {
+  id: string;
+  title: string;
+  fingerprint: string;
+  count: number;
+  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM';
+  envList: string[];
+  failures: TriageFailure[];
+  predictedStatus?: string;
+  historicalMatch?: any;
+}
+
+interface TriagePattern {
+  id: string;
+  fingerprint: string;
+  resolvedStatus: string;
+  comment?: string;
+  occurrenceCount: number;
+  lastSeen: string;
+}
+
 export default function TriagePage() {
   return (
     <Suspense fallback={<div className="flex h-screen w-full items-center justify-center bg-[#0a0e1a]"><RefreshCw className="w-6 h-6 text-indigo-400 animate-spin" /></div>}>
@@ -43,12 +77,12 @@ export default function TriagePage() {
 function TriageContent() {
   const searchParams = useSearchParams();
   const runId = searchParams.get('runId');
-  const [clusters, setClusters] = useState<any[]>([]);
-  const [selectedCluster, setSelectedCluster] = useState<any | null>(null);
-  const [selectedFailure, setSelectedFailure] = useState<any | null>(null);
+  const [clusters, setClusters] = useState<TriageCluster[]>([]);
+  const [selectedCluster, setSelectedCluster] = useState<TriageCluster | null>(null);
+  const [selectedFailure, setSelectedFailure] = useState<TriageFailure | null>(null);
   const [loading, setLoading] = useState(true);
   const [triageStatus, setTriageStatus] = useState<string | null>(null);
-  const [patterns, setPatterns] = useState<any[]>([]);
+  const [patterns, setPatterns] = useState<TriagePattern[]>([]);
   const [showKBManager, setShowKBManager] = useState(false);
   const [conflict, setConflict] = useState<{ predicted: string, incoming: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -70,11 +104,11 @@ function TriageContent() {
         const patternsData = await patternsRes.json();
         setPatterns(patternsData.patterns || []);
         
-        const activeClusters = clusterFailures(runsData.runs || []);
+        const activeClusters = clusterFailures(runsData.runs || []) as unknown as TriageCluster[];
         
         // Auto-match patterns
         activeClusters.forEach(cluster => {
-          const match = patternsData.patterns?.find((p: any) => p.fingerprint === cluster.fingerprint);
+          const match = patternsData.patterns?.find((p: TriagePattern) => p.fingerprint === cluster.fingerprint);
           if (match) {
             cluster.historicalMatch = match;
             cluster.predictedStatus = match.resolvedStatus;
@@ -84,7 +118,7 @@ function TriageContent() {
         setClusters(activeClusters);
         if (activeClusters.length > 0) {
           setSelectedCluster(activeClusters[0]);
-          setSelectedFailure(activeClusters[0].failures[0]);
+          setSelectedFailure(activeClusters[0].failures[0] as unknown as TriageFailure);
         }
       } catch (err) {
         console.error("Expert triage load failed", err);
@@ -108,7 +142,7 @@ function TriageContent() {
     
     setConflict(null);
     setTriageStatus('triaging...');
-    const testIds = selectedCluster.failures.map((f: any) => f.id);
+    const testIds = selectedCluster.failures.map((f: TriageFailure) => f.id);
     
     try {
       const res = await fetch("/api/triage/bulk", {
@@ -141,7 +175,7 @@ function TriageContent() {
 
   const filteredClusters = clusters.filter(cluster => 
     cluster.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    cluster.failures.some((f: any) => f.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    cluster.failures.some((f: TriageFailure) => f.title.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const handleArchiveAll = () => {
@@ -486,20 +520,20 @@ function TriageContent() {
                   <span className="text-[10px] font-bold text-slate-600">Normalization: Normalized HASH-X</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {selectedCluster?.failures.map((f: any) => (
+                  {selectedCluster?.failures.map((f: TriageFailure) => (
                     <button 
                       key={f.id}
                       onClick={() => setSelectedFailure(f)}
-                      className={`group flex items-center justify-between p-6 rounded-[2rem] border transition-all duration-300 ${selectedFailure.id === f.id ? 'bg-indigo-500/10 border-indigo-500/30' : 'bg-white/[0.02] border-white/[0.02] hover:bg-white/[0.05]'}`}
+                      className={`group flex items-center justify-between p-6 rounded-[2rem] border transition-all duration-300 ${selectedFailure?.id === f.id ? 'bg-indigo-500/10 border-indigo-500/30' : 'bg-white/[0.02] border-white/[0.02] hover:bg-white/[0.05]'}`}
                     >
                       <div className="flex items-center gap-5">
-                        <div className={`w-3 h-3 rounded-full transition-all duration-500 ${selectedFailure.id === f.id ? 'bg-indigo-400 scale-125 shadow-lg shadow-indigo-500/40' : 'bg-rose-500/40 group-hover:bg-rose-500'}`} />
+                        <div className={`w-3 h-3 rounded-full transition-all duration-500 ${selectedFailure?.id === f.id ? 'bg-indigo-400 scale-125 shadow-lg shadow-indigo-500/40' : 'bg-rose-500/40 group-hover:bg-rose-500'}`} />
                         <div className="text-left">
                           <p className="text-sm font-bold text-white group-hover:translate-x-1 transition-transform">{f.title}</p>
                           <p className="text-[10px] text-slate-500 font-medium">{f.suite} • {f.time}</p>
                         </div>
                       </div>
-                      <ChevronRight className={`w-5 h-5 transition-all ${selectedFailure.id === f.id ? 'text-indigo-400 translate-x-0' : 'text-slate-800 -translate-x-2'}`} />
+                      <ChevronRight className={`w-5 h-5 transition-all ${selectedFailure?.id === f.id ? 'text-indigo-400 translate-x-0' : 'text-slate-800 -translate-x-2'}`} />
                     </button>
                   ))}
                 </div>
@@ -572,7 +606,7 @@ function TriageContent() {
                   <p className="text-slate-600 font-bold uppercase tracking-widest text-xs">Knowledge Base is Empty</p>
                 </div>
               ) : (
-                patterns.map((pattern: any) => (
+                patterns.map((pattern: TriagePattern) => (
                   <div key={pattern.id} className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:border-indigo-500/30 transition-all group relative">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
@@ -602,7 +636,7 @@ function TriageContent() {
             
             <div className="p-8 border-t border-white/5 bg-black/20">
               <p className="text-[10px] text-slate-600 font-black uppercase tracking-widest leading-relaxed text-center">
-                Deletions are permanent. Removing a pattern resets the Oracle's prediction for similar regressions.
+                Deletions are permanent. Removing a pattern resets the Oracle&apos;s prediction for similar regressions.
               </p>
             </div>
           </div>

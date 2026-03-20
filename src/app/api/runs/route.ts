@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { Prisma } from '@prisma/client';
 
 export async function GET(req: Request) {
   try {
@@ -13,7 +14,7 @@ export async function GET(req: Request) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
 
-    const where: any = {};
+    const where: Prisma.TestRunWhereInput = {};
 
     if (runId) {
       where.id = runId;
@@ -29,9 +30,9 @@ export async function GET(req: Request) {
       where.env = env;
     }
 
-    const orderBy: any = {};
+    const orderBy: Prisma.TestRunOrderByWithRelationInput = {};
     if (['startTime', 'duration', 'project', 'env', 'status'].includes(sortBy)) {
-      orderBy[sortBy] = sortOrder;
+      (orderBy as Record<string, string>)[sortBy] = sortOrder;
     } else {
       orderBy.startTime = 'desc';
     }
@@ -55,7 +56,7 @@ export async function GET(req: Request) {
 
     // Get all distinct environments for filter dropdown
     const allRuns = await prisma.testRun.findMany({ select: { env: true }, distinct: ['env'] });
-    const environments = allRuns.map((r: any) => r.env);
+    const environments = allRuns.map((r: { env: string }) => r.env);
 
     return NextResponse.json({
       runs,

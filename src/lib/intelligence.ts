@@ -11,7 +11,33 @@ export interface ConfidenceMetrics {
   trend: 'up' | 'down' | 'stable';
 }
 
-export function calculateConfidenceScore(runs: any[]): ConfidenceMetrics {
+export interface Test {
+  id: string;
+  title: string;
+  status: string;
+  error?: string;
+  stack?: string;
+  duration?: number;
+}
+
+export interface Suite {
+  id: string;
+  title: string;
+  tests?: Test[];
+}
+
+export interface Run {
+  id: string;
+  project: string;
+  status: string;
+  duration?: number;
+  isFlaky?: boolean;
+  suites?: Suite[];
+  env: string;
+  startTime: string | Date;
+}
+
+export function calculateConfidenceScore(runs: Run[]): ConfidenceMetrics {
   if (!runs || runs.length === 0) {
     return { score: 0, stability: 0, coverage: 0, velocity: 0, trend: 'stable' };
   }
@@ -46,7 +72,7 @@ export function calculateConfidenceScore(runs: any[]): ConfidenceMetrics {
   return { score, stability, coverage, velocity, trend };
 }
 
-export function classifyFailures(runs: any[]) {
+export function classifyFailures(runs: Run[]) {
   const failures = runs.filter(r => r.status === 'failed');
   const classified = {
     infrastructure: 0,
@@ -79,13 +105,40 @@ export function getFingerprint(error: string | null): string {
     .trim();
 }
 
-export function clusterFailures(runs: any[]) {
-  const clusters: any[] = [];
+export interface FailureCluster {
+  id: string;
+  title: string;
+  fingerprint: string;
+  count: number;
+  severity: 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  envs: Set<string>;
+  description: string;
+  failures: {
+    id: string;
+    title: string;
+    suite: string;
+    time: string;
+    error?: string;
+    stack?: string;
+    runId: string;
+    env: string;
+  }[];
+  envList?: string[];
+}
+
+export function clusterFailures(runs: Run[]) {
+  const clusters: FailureCluster[] = [];
   
-  const allFailedTests: any[] = [];
+  const allFailedTests: (Test & { 
+    suiteTitle: string; 
+    runId: string; 
+    env: string; 
+    startTime: string | Date; 
+  })[] = [];
+
   runs.forEach(run => {
-    run.suites?.forEach((suite: any) => {
-      suite.tests?.forEach((test: any) => {
+    run.suites?.forEach((suite: Suite) => {
+      suite.tests?.forEach((test: Test) => {
         const isActuallyFailed = test.status === 'failed';
         const isNonPassingInFailedRun = test.status !== 'passed' && run.status === 'failed';
         
@@ -105,7 +158,7 @@ export function clusterFailures(runs: any[]) {
   });
 
   allFailedTests.forEach(test => {
-    const fingerprint = getFingerprint(test.error);
+    const fingerprint = getFingerprint(test.error || null);
     
     let cluster = clusters.find(c => c.fingerprint === fingerprint);
     if (!cluster) {

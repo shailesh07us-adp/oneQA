@@ -125,16 +125,31 @@ function isLiveConfigured(): boolean {
 
 // ─── Live ADO Fetch (used when PAT is configured) ────────────
 
-async function fetchFromAdo(path: string): Promise<any> {
+interface AdoWorkItem {
+  id: number;
+  fields: {
+    "System.Title": string;
+    "Microsoft.VSTS.Common.Severity"?: string;
+    "System.State": string;
+    "System.AssignedTo"?: { displayName: string };
+    "System.CreatedDate": string;
+    "System.TeamProject": string;
+    "System.AreaPath": string;
+  };
+}
+
+async function fetchFromAdo(path: string, body?: any): Promise<any> {
   const base = ADO_ORG_URL.replace(/\/$/, "");
   const url = `${base}/${path}`;
   const authHeader = "Basic " + Buffer.from(`:${ADO_PAT}`).toString("base64");
 
   const res = await fetch(url, {
+    method: body ? "POST" : "GET",
     headers: {
       Authorization: authHeader,
       "Content-Type": "application/json",
     },
+    body: body ? JSON.stringify(body) : undefined,
     next: { revalidate: 300 }, // cache for 5 min
   });
 
@@ -159,21 +174,22 @@ async function fetchLiveDefects(): Promise<AdoDefect[]> {
   };
 
   const wiqlResult = await fetchFromAdo(
-    `${project}/_apis/wit/wiql?api-version=7.0`
+    `${project}/_apis/wit/wiql?api-version=7.0`,
+    wiqlBody
   );
 
   if (!wiqlResult.workItems?.length) return [];
 
   const ids = wiqlResult.workItems
     .slice(0, 200)
-    .map((w: any) => w.id)
+    .map((w: { id: number }) => w.id)
     .join(",");
 
   const itemsResult = await fetchFromAdo(
     `_apis/wit/workitems?ids=${ids}&fields=System.Id,System.Title,Microsoft.VSTS.Common.Severity,System.State,System.AssignedTo,System.CreatedDate,System.TeamProject,System.AreaPath&api-version=7.0`
   );
 
-  return (itemsResult.value || []).map((item: any) => ({
+  return (itemsResult.value || []).map((item: AdoWorkItem) => ({
     id: item.id,
     title: item.fields["System.Title"],
     severity: item.fields["Microsoft.VSTS.Common.Severity"] || "3 - Medium",
@@ -258,7 +274,6 @@ function generateMockProjectHealth(): AdoDashboardData["projectHealth"] {
 
 function getMockData(): AdoDashboardData {
   const trend = generateMockDefectTrend();
-  const totalOpened = trend.reduce((s, t) => s + t.opened, 0);
   const totalResolved = trend.reduce((s, t) => s + t.resolved, 0);
 
   // Generate 7-day forecast

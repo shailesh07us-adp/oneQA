@@ -6,7 +6,7 @@ import prisma from "@/lib/db";
 export async function GET() {
   const session = await getServerSession(authOptions);
   
-  if (!session || ((session.user as any).globalRole !== "ADMIN")) {
+  if (!session || (session.user.globalRole !== "ADMIN")) {
     // For now, only global ADMIN can see all approvals.
     // If it's a Project Lead, we should filter by their project.
     // However, pending users don't have a project yet.
@@ -25,7 +25,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
   
-  if (!session || ((session.user as any).globalRole !== "ADMIN")) {
+  if (!session || (session.user.globalRole !== "ADMIN")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      user: { id: updatedUser.id, name: updatedUser.name, status: (updatedUser as any).status },
+      user: { id: updatedUser.id, name: updatedUser.name, status: updatedUser.status },
     });
   } catch (error) {
     console.error("User approval error:", error);

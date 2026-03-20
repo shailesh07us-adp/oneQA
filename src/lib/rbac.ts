@@ -15,8 +15,8 @@ export async function getSessionUser() {
   if (!session?.user) return null;
   return {
     user: session.user,
-    globalRole: ((session.user as any).globalRole || "USER") as GlobalRole,
-    id: (session.user as any).id as string,
+    globalRole: (session.user.globalRole || "USER") as GlobalRole,
+    id: session.user.id,
   };
 }
 

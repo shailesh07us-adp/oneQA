@@ -1,32 +1,74 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { relativeTime } from "@/lib/utils";
 import {
   Key,
-  Plus,
   Copy,
   CheckCircle2,
   XCircle,
   Trash2,
   Users,
-  Settings,
   FolderX,
-  ShieldAlert,
   Clock,
   AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import AccessDenied from "@/components/AccessDenied";
 
+interface ProjectRun {
+  id: string;
+  status: string;
+  env: string;
+  startTime: string;
+  duration: number | null;
+}
+
+interface ProjectApiKey {
+  id: string;
+  label: string;
+  prefix: string;
+  createdAt: string;
+}
+
+interface ProjectMember {
+  id: string;
+  userId: string;
+  role: string;
+  user: {
+    name: string | null;
+    email: string;
+  };
+}
+
+interface ProjectUser {
+  id: string;
+  name: string | null;
+  email: string | null;
+}
+
+type ProjectDetail = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  error?: never;
+  _count?: {
+    testRuns: number;
+  };
+  apiKeys: ProjectApiKey[];
+  members: ProjectMember[];
+  testRuns: ProjectRun[];
+} | { error: string; id?: never; name?: never; slug?: never; description?: never; _count?: never; apiKeys?: never; members?: never; testRuns?: never };
+
 export default function ProjectDetailPage() {
   const { id } = useParams();
   const { data: session } = useSession();
   
-  const [project, setProject] = useState<any>(null);
+  const [project, setProject] = useState<ProjectDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"overview" | "team">("overview");
 
@@ -38,15 +80,15 @@ export default function ProjectDetailPage() {
   const [showKeyDialog, setShowKeyDialog] = useState(false);
 
   // Team state
-  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [allUsers, setAllUsers] = useState<ProjectUser[]>([]);
   const [addingMember, setAddingMember] = useState(false);
   const [newMemberId, setNewMemberId] = useState("");
   const [newMemberRole, setNewMemberRole] = useState("CONTRIBUTOR");
 
-  const currentUserId = (session?.user as any)?.id;
-  const globalRole = (session?.user as any)?.globalRole;
+  const currentUserId = session?.user?.id;
+  const globalRole = session?.user?.globalRole;
 
-  const fetchProject = async () => {
+  const fetchProject = useCallback(async () => {
     setLoading(true);
     const res = await fetch(`/api/projects/${id}`);
     if (res.ok) {
@@ -55,20 +97,19 @@ export default function ProjectDetailPage() {
       setProject({ error: "Forbidden" });
     }
     setLoading(false);
-  };
+  }, [id]);
 
-  const fetchUsers = async () => {
-    // Only admins can naturally list all users, but a project lead might need a list of users to add.
-    // For simplicity, we assume an endpoint exists or we use the global users API.
-    // If not admin, the API might fail, so we handle it gracefully.
+  const fetchUsers = useCallback(async () => {
     const res = await fetch(`/api/users`);
     if (res.ok) setAllUsers(await res.json());
-  };
+  }, []);
 
   useEffect(() => { 
     fetchProject(); 
-    if (globalRole === "ADMIN") fetchUsers();
-  }, [id, globalRole]);
+    if (globalRole === "ADMIN") {
+      fetchUsers();
+    }
+  }, [fetchProject, fetchUsers, globalRole]);
 
   if (loading) {
     return (
@@ -122,7 +163,7 @@ export default function ProjectDetailPage() {
     );
   }
 
-  const projectRole = project.members?.find((m: any) => m.userId === currentUserId)?.role || (globalRole === "ADMIN" ? "PROJECT_LEAD" : null);
+  const projectRole = project ? (project.members?.find((m: ProjectMember) => m.userId === currentUserId)?.role || (globalRole === "ADMIN" ? "PROJECT_LEAD" : null)) : null;
   const canManageProject = projectRole === "PROJECT_LEAD";
 
   const generateKey = async () => {
@@ -207,7 +248,7 @@ export default function ProjectDetailPage() {
   };
 
   const runs = project.testRuns || [];
-  const passed = runs.filter((r: any) => r.status === "passed").length;
+  const passed = runs.filter((r: ProjectRun) => r.status === "passed").length;
   const rate = runs.length > 0 ? Math.round((passed / runs.length) * 100) : 0;
 
   return (
@@ -293,7 +334,7 @@ export default function ProjectDetailPage() {
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      {project.apiKeys?.map((key: any) => (
+                      {project.apiKeys?.map((key: ProjectApiKey) => (
                         <div key={key.id} className="glass rounded-xl p-4 flex items-center justify-between">
                           <div>
                             <p className="text-sm font-medium text-white">{key.label}</p>
@@ -322,7 +363,7 @@ export default function ProjectDetailPage() {
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      {runs.slice(0, 6).map((run: any) => (
+                      {runs.slice(0, 6).map((run: ProjectRun) => (
                         <div key={run.id} className="glass rounded-xl p-4 flex items-center gap-4">
                           {run.status === "passed"
                             ? <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -362,7 +403,7 @@ export default function ProjectDetailPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/40">
-                    {project.members?.map((member: any) => {
+                    {project.members?.map((member: ProjectMember) => {
                       const isSelf = member.userId === currentUserId;
                       return (
                         <tr key={member.id} className="hover:bg-slate-800/20">
@@ -420,7 +461,7 @@ export default function ProjectDetailPage() {
                               className="bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500 flex-1 max-w-sm"
                             >
                               <option value="" disabled>Select a user to add...</option>
-                              {allUsers.filter(u => !project.members.some((m: any) => m.userId === u.id)).map(u => (
+                              {allUsers.filter(u => !project.members?.some((m: ProjectMember) => m.userId === u.id)).map(u => (
                                 <option key={u.id} value={u.id}>{u.name || u.email}</option>
                               ))}
                             </select>

@@ -13,7 +13,6 @@ import {
   BarChart3,
   AlertTriangle,
   FolderOpen,
-  Key,
   Sparkles,
   Layers,
   MessageSquare,
@@ -23,7 +22,27 @@ import { TestCaseTrendChart, DurationTrendChart } from "@/components/TrendChart"
 import { TestingPyramid } from "@/components/TestingPyramid";
 import FeedbackModal from "@/components/FeedbackModal";
 
-function StatCard({ label, value, icon, color }: { label: string; value: any; icon: React.ReactNode; color: string }) {
+interface Test {
+  title: string;
+  status: string;
+}
+
+interface Suite {
+  tests?: Test[];
+}
+
+interface Run {
+  id: string;
+  project: string;
+  status: string;
+  env: string;
+  startTime: string;
+  duration: number | null;
+  suites?: Suite[];
+  type?: string;
+}
+
+function StatCard({ label, value, icon, color }: { label: string; value: string | number; icon: React.ReactNode; color: string }) {
   const map: Record<string, string> = {
     indigo: "border-indigo-500/80 shadow-[0_-12px_20px_-8px_rgba(99,102,241,0.25)]",
     emerald: "border-emerald-500/80 shadow-[0_-12px_20px_-8px_rgba(52,211,153,0.25)]",
@@ -70,9 +89,8 @@ function QuickLink({ href, icon, label, desc, color }: { href: string; icon: Rea
 }
 
 export default function DashboardPage() {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<{ runs: Run[]; total: number } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedKpi, setSelectedKpi] = useState<{ label: string; runs: any[] } | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
 
   useEffect(() => {
@@ -92,15 +110,15 @@ export default function DashboardPage() {
 
   const runs = data.runs || [];
   const totalRuns = data.total || 0;
-  const passedTests = runs.filter((r: any) => r.status === "passed").length;
-  const failedTests = runs.filter((r: any) => r.status === "failed").length;
+  const passedTests = runs.filter((r) => r.status === "passed").length;
+  const failedTests = runs.filter((r) => r.status === "failed").length;
   const successRate = totalRuns > 0 ? Math.round((passedTests / totalRuns) * 100) : 0;
-  const avgDuration = runs.length > 0 ? Math.round(runs.reduce((s: number, r: any) => s + (r.duration || 0), 0) / runs.length / 1000) : 0;
+  const avgDuration = runs.length > 0 ? Math.round(runs.reduce((s: number, r) => s + (r.duration || 0), 0) / runs.length / 1000) : 0;
   const recentActivity = runs.slice(0, 4);
 
   // Build score computation
   const testResults: Record<string, { passed: number; total: number }> = {};
-  runs.forEach((r: any) => r.suites?.forEach((s: any) => s.tests?.forEach((t: any) => {
+  runs.forEach((r) => r.suites?.forEach((s) => s.tests?.forEach((t) => {
     if (!testResults[t.title]) testResults[t.title] = { passed: 0, total: 0 };
     testResults[t.title].total++;
     if (t.status === "passed") testResults[t.title].passed++;
@@ -234,9 +252,9 @@ export default function DashboardPage() {
               </div>
               <div className="flex-1 min-h-[400px]">
                 <TestingPyramid 
-                  unit={runs.filter((r: any) => r.type === 'unit').length || 450} 
-                  integration={runs.filter((r: any) => r.type === 'integration').length || 180} 
-                  e2e={runs.filter((r: any) => r.type === 'e2e').length || 65} 
+                  unit={runs.filter((r) => r.type === 'unit').length || 450} 
+                  integration={runs.filter((r) => r.type === 'integration').length || 180} 
+                  e2e={runs.filter((r) => r.type === 'e2e').length || 65} 
                 />
               </div>
             </div>
@@ -264,7 +282,7 @@ export default function DashboardPage() {
                 <Link href="/runs" className="text-[10px] font-black text-indigo-400 uppercase tracking-widest hover:text-indigo-300 transition-colors">History &rarr;</Link>
               </div>
               <div className="divide-y divide-white/[0.03]">
-                {recentActivity.map((run: any) => (
+                {recentActivity.map((run: Run) => (
                   <div key={run.id} className="flex items-center gap-6 py-4 group transition-all hover:bg-white/[0.01] px-2 rounded-xl">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${run.status === "passed" ? "bg-emerald-500/10" : "bg-rose-500/10"}`}>
                       {run.status === "passed" ? <CheckCircle2 className="w-5 h-5 text-emerald-400" /> : <XCircle className="w-5 h-5 text-rose-400" />}

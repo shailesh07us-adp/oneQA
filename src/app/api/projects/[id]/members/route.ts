@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { requireProjectRole, requireGlobalRole, getSessionUser } from "@/lib/rbac";
+import { Prisma } from "@prisma/client";
 
 // GET — List all members for a project (Members or Admin only)
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -58,8 +59,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     });
 
     return NextResponse.json(member, { status: 201 });
-  } catch (error: any) {
-    if (error.code === 'P2002') {
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       return NextResponse.json({ error: "User is already a member of this project" }, { status: 409 });
     }
     return NextResponse.json({ error: "Failed to add member" }, { status: 500 });

@@ -18,8 +18,36 @@ import {
 } from "lucide-react";
 import { relativeTime, downloadCsv } from "@/lib/utils";
 
+interface Test {
+  id: string;
+  title: string;
+  status: string;
+  duration: number;
+  project?: string;
+  error?: string | null;
+  stack?: string | null;
+  tracePath?: string;
+  screenshotPath?: string;
+}
+
+interface Suite {
+  id: string;
+  title: string;
+  tests: Test[];
+}
+
+interface Run {
+  id: string;
+  project: string;
+  status: string;
+  env: string;
+  startTime: string;
+  duration: number | null;
+  suites: Suite[];
+}
+
 export default function RunsPage() {
-  const [runs, setRuns] = useState<any[]>([]);
+  const [runs, setRuns] = useState<Run[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [environments, setEnvironments] = useState<string[]>([]);
@@ -97,7 +125,7 @@ export default function RunsPage() {
             <button onClick={handleRefresh} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/60 border border-slate-700/50 text-slate-300 text-xs font-medium hover:bg-slate-700/60 hover:text-white transition-all">
               <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} /> Refresh
             </button>
-            <button onClick={() => downloadCsv(runs, `oneqa-test-runs-${new Date().toISOString().split("T")[0]}`)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-medium hover:bg-indigo-500/20 transition-all">
+            <button onClick={() => downloadCsv(runs as any, `oneqa-test-runs-${new Date().toISOString().split("T")[0]}`)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-medium hover:bg-indigo-500/20 transition-all">
               <Download className="w-3.5 h-3.5" /> Export CSV
             </button>
             <span className="text-xs text-slate-500 ml-2">{total} runs</span>
@@ -149,12 +177,12 @@ export default function RunsPage() {
             </div>
           ) : (
             <div className="space-y-5">
-              {runs.map((run: any, idx: number) => {
-                const totalTests = run.suites.reduce((s: number, suite: any) => s + suite.tests.length, 0);
-                const passedTests = run.suites.reduce((s: number, suite: any) => s + suite.tests.filter((t: any) => t.status === "passed").length, 0);
-                const failedTests = run.suites.reduce((s: number, suite: any) => s + suite.tests.filter((t: any) => t.status === "failed").length, 0);
-                const flakyTests = run.suites.reduce((s: number, suite: any) => s + suite.tests.filter((t: any) => t.status === "flaky").length, 0);
-                const skippedTests = run.suites.reduce((s: number, suite: any) => s + suite.tests.filter((t: any) => t.status === "skipped").length, 0);
+              {runs.map((run: Run, idx: number) => {
+                const totalTests = run.suites.reduce((s: number, suite: Suite) => s + suite.tests.length, 0);
+                const passedTests = run.suites.reduce((s: number, suite: Suite) => s + suite.tests.filter((t: Test) => t.status === "passed").length, 0);
+                const failedTests = run.suites.reduce((s: number, suite: Suite) => s + suite.tests.filter((t: Test) => t.status === "failed").length, 0);
+                const flakyTests = run.suites.reduce((s: number, suite: Suite) => s + suite.tests.filter((t: Test) => t.status === "flaky").length, 0);
+                const skippedTests = run.suites.reduce((s: number, suite: Suite) => s + suite.tests.filter((t: Test) => t.status === "skipped").length, 0);
                 const isPassed = run.status === "passed";
 
                 return (
@@ -206,13 +234,13 @@ export default function RunsPage() {
                     </div>
 
                     <div className="bg-white/[0.01] border-t border-white/[0.03]">
-                      {run.suites.map((suite: any) => {
+                      {run.suites.map((suite: Suite) => {
                         const isCollapsed = collapsedSuites.has(suite.id);
                         
                         // Suite-level analytics
                         const suiteTests = suite.tests || [];
-                        const suitePassed = suiteTests.filter((t: any) => t.status === "passed").length;
-                        const suiteFailed = suiteTests.filter((t: any) => t.status === "failed").length;
+                        const suitePassed = suiteTests.filter((t: Test) => t.status === "passed").length;
+                        const suiteFailed = suiteTests.filter((t: Test) => t.status === "failed").length;
                         const suiteSkipped = suiteTests.length - suitePassed - suiteFailed;
                         
                         // Failures-first sorting
@@ -228,7 +256,7 @@ export default function RunsPage() {
                             <div className="relative group/suite">
                               {/* Health Ribbon (Pixel Grid) */}
                               <div className="absolute top-0 left-0 w-full h-[2px] flex">
-                                {suiteTests.map((t: any, i: number) => (
+                                {suiteTests.map((t: Test, i: number) => (
                                   <div 
                                     key={t.id} 
                                     className={`flex-1 h-full ${t.status === 'passed' ? 'bg-emerald-500/40' : t.status === 'failed' ? 'bg-rose-500/60' : 'bg-amber-500/40'}`}
@@ -272,7 +300,7 @@ export default function RunsPage() {
                                   )}
                                   <div className="h-4 w-px bg-white/5" />
                                   <span className="text-[10px] font-mono text-slate-600 uppercase tracking-widest">
-                                    {Math.round(suiteTests.reduce((acc: number, t: any) => acc + (t.duration || 0), 0) / 1000)}s Total
+                                    {Math.round(suiteTests.reduce((acc: number, t: Test) => acc + (t.duration || 0), 0) / 1000)}s Total
                                   </span>
                                 </div>
                               </div>
@@ -281,7 +309,7 @@ export default function RunsPage() {
                             {!isCollapsed && (
                               <div className="bg-black/20 px-4 pb-4">
                                 <div className="rounded-2xl border border-white/[0.03] overflow-hidden divide-y divide-white/[0.02] bg-[#0c1021]/50">
-                                  {sortedTests.map((test: any) => (
+                                  {sortedTests.map((test: Test) => (
                                     <div key={test.id} className="group/test-item">
                                       <div className={`px-6 py-2.5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group/test ${triagingTestId === test.id ? 'bg-indigo-500/[0.05]' : ''}`}>
                                         <div className="flex items-center gap-4">
@@ -333,7 +361,7 @@ export default function RunsPage() {
                                                     </div>
                                                     {test.tracePath && (
                                                       <button 
-                                                        onClick={() => window.open(`/api/artifacts?path=${encodeURIComponent(test.tracePath)}`, '_blank')}
+                                                        onClick={() => window.open(`/api/artifacts?path=${encodeURIComponent(test.tracePath!)}`, '_blank')}
                                                         className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[9px] font-black uppercase tracking-widest hover:bg-indigo-500/20 transition-all active:scale-95"
                                                       >
                                                         <Zap className="w-3 h-3" />
@@ -356,13 +384,13 @@ export default function RunsPage() {
                                                       </div>
                                                       <div className="rounded-2xl overflow-hidden border border-white/10 bg-black/20 aspect-video relative group/img shadow-2xl shadow-black/60 max-w-[280px] ml-auto">
                                                         <img 
-                                                          src={`/api/artifacts?path=${encodeURIComponent(test.screenshotPath)}`} 
+                                                          src={`/api/artifacts?path=${encodeURIComponent(test.screenshotPath!)}`} 
                                                           alt="Failure Screenshot"
                                                           className="w-full h-full object-cover transition-transform duration-500 group-hover/img:scale-105"
                                                         />
                                                         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
                                                           <button 
-                                                            onClick={() => window.open(`/api/artifacts?path=${encodeURIComponent(test.screenshotPath)}`, '_blank')}
+                                                            onClick={() => window.open(`/api/artifacts?path=${encodeURIComponent(test.screenshotPath!)}`, '_blank')}
                                                             className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/20 transition-all hover:scale-105 active:scale-95 shadow-xl"
                                                           >
                                                             View Full Size

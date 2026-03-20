@@ -89,7 +89,7 @@ export function DurationTrendChart({ projectId }: { projectId?: string }) {
           <Tooltip
             contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b", borderRadius: "8px", fontSize: "12px" }}
             labelStyle={{ color: "#94a3b8" }}
-            formatter={(v: number) => [`${v}s`, "Avg Duration"]}
+            formatter={(v: any) => [`${v}s`, "Avg Duration"]}
           />
           <Bar dataKey="avgDuration" fill="#6366f1" radius={[4, 4, 0, 0]} />
         </BarChart>

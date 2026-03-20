@@ -4,8 +4,28 @@ import { TrendingUp, BarChart3 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
+interface Test {
+  id: string;
+  title: string;
+  status: string;
+}
+
+interface Suite {
+  id: string;
+  tests: Test[];
+}
+
+interface Run {
+  id: string;
+  project: string;
+  status: string;
+  env: string;
+  duration: number | null;
+  suites: Suite[];
+}
+
 export default async function SuccessRatesPage() {
-  const runs = await prisma.testRun.findMany({
+  const runs = (await prisma.testRun.findMany({
     include: {
       suites: {
         include: {
@@ -13,11 +33,11 @@ export default async function SuccessRatesPage() {
         },
       },
     },
-  });
+  })) as unknown as Run[];
 
   // Per-project success rates
   const projectMap: Record<string, { total: number; passed: number; failed: number; totalDuration: number }> = {};
-  runs.forEach((run: any) => {
+  runs.forEach((run: Run) => {
     if (!projectMap[run.project]) {
       projectMap[run.project] = { total: 0, passed: 0, failed: 0, totalDuration: 0 };
     }
@@ -29,7 +49,7 @@ export default async function SuccessRatesPage() {
 
   // Per-environment success rates
   const envMap: Record<string, { total: number; passed: number }> = {};
-  runs.forEach((run: any) => {
+  runs.forEach((run: Run) => {
     if (!envMap[run.env]) {
       envMap[run.env] = { total: 0, passed: 0 };
     }
@@ -39,9 +59,9 @@ export default async function SuccessRatesPage() {
 
   // Per-test-case pass rates
   const testMap: Record<string, { total: number; passed: number }> = {};
-  runs.forEach((run: any) => {
-    run.suites.forEach((suite: any) => {
-      suite.tests.forEach((test: any) => {
+  runs.forEach((run: Run) => {
+    run.suites.forEach((suite: Suite) => {
+      suite.tests.forEach((test: Test) => {
         if (!testMap[test.title]) {
           testMap[test.title] = { total: 0, passed: 0 };
         }
@@ -55,7 +75,7 @@ export default async function SuccessRatesPage() {
     .map(([title, stats]) => ({ title, ...stats, rate: Math.round((stats.passed / stats.total) * 100) }))
     .sort((a, b) => a.rate - b.rate);
 
-  const overallRate = runs.length > 0 ? Math.round((runs.filter((r: any) => r.status === "passed").length / runs.length) * 100) : 0;
+  const overallRate = runs.length > 0 ? Math.round((runs.filter((r: Run) => r.status === "passed").length / runs.length) * 100) : 0;
 
   return (
     <>
@@ -86,7 +106,7 @@ export default async function SuccessRatesPage() {
                   }}
                 />
               </div>
-              <p className="text-[11px] text-slate-500 mt-1.5">{runs.filter((r: any) => r.status === "passed").length} passed out of {runs.length} total runs</p>
+              <p className="text-[11px] text-slate-500 mt-1.5">{runs.filter((r: Run) => r.status === "passed").length} passed out of {runs.length} total runs</p>
             </div>
           </div>
 

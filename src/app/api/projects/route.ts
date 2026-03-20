@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { getSessionUser } from "@/lib/rbac";
+import { Prisma } from "@prisma/client";
 
 // GET — List projects (Admins see all, Users see joined projects)
 export async function GET() {
@@ -8,7 +9,7 @@ export async function GET() {
   if (!sessionUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const whereClause: any = { archived: false };
+    const whereClause: Prisma.ProjectWhereInput = { archived: false };
     if (sessionUser.globalRole !== "ADMIN") {
       whereClause.members = { some: { userId: sessionUser.id } };
     }

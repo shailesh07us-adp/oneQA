@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db";
+import { Prisma } from "@prisma/client";
 
 export async function GET(req: Request) {
   try {
@@ -9,7 +10,7 @@ export async function GET(req: Request) {
 
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-    const where: any = { startTime: { gte: since } };
+    const where: Prisma.TestRunWhereInput = { startTime: { gte: since } };
     if (projectId) where.projectId = projectId;
 
     const runs = await prisma.testRun.findMany({
@@ -21,7 +22,7 @@ export async function GET(req: Request) {
     // Aggregate by day
     const dailyMap: Record<string, { date: string; passed: number; failed: number; total: number; avgDuration: number; totalDuration: number }> = {};
 
-    runs.forEach((run: any) => {
+    runs.forEach((run: { startTime: Date; status: string; duration: number | null }) => {
       const day = new Date(run.startTime).toISOString().split("T")[0];
       if (!dailyMap[day]) {
         dailyMap[day] = { date: day, passed: 0, failed: 0, total: 0, avgDuration: 0, totalDuration: 0 };

@@ -28,24 +28,55 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
   USER: { label: "User", cls: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20" },
 };
 
+interface UserMembership {
+  project: {
+    id: string;
+    name: string;
+  };
+  role: string;
+}
+
+interface UserListItem {
+  id: string;
+  name: string | null;
+  email: string;
+  globalRole: string;
+  status: string;
+  createdAt: string;
+  memberships: UserMembership[];
+}
+
+interface ProjectItem {
+  id: string;
+  name: string;
+}
+
+interface PendingUser {
+  id: string;
+  name: string | null;
+  email: string;
+  requestedAt?: string;
+  createdAt: string;
+}
+
 export default function UsersPage() {
   const { data: session } = useSession();
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<UserListItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "", role: "USER", projectId: "", projectRole: "CONTRIBUTOR" });
   const [creating, setCreating] = useState(false);
   const [editingRole, setEditingRole] = useState<string | null>(null);
-  const [userToDelete, setUserToDelete] = useState<any | null>(null);
+  const [userToDelete, setUserToDelete] = useState<UserListItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [activeTab, setActiveTab] = useState<"users" | "approvals">("users");
-  const [pendingUsers, setPendingUsers] = useState<any[]>([]);
+  const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
   const [processingApproval, setProcessingApproval] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
-  const currentUserId = (session?.user as any)?.id;
-  const currentRole = (session?.user as any)?.globalRole;
+  const currentUserId = session?.user?.id;
+  const currentRole = session?.user?.globalRole;
 
   const fetchUsersAndProjects = async () => {
     setLoading(true);
@@ -294,7 +325,7 @@ export default function UsersPage() {
                           <td className="px-6 py-4">
                             <div className="flex flex-wrap gap-1 max-w-xs">
                               {user.memberships?.length > 0 ? (
-                                user.memberships.map((m: any, idx: number) => (
+                                user.memberships.map((m: UserMembership, idx: number) => (
                                   <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-300 border border-slate-700">
                                     {m.project.name}
                                   </span>

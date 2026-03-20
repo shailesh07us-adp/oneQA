@@ -3,6 +3,8 @@ import type { NextRequest } from "next/server";
 import prisma from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { requireGlobalRole, getSessionUser } from "@/lib/rbac";
+import { Prisma } from "@prisma/client";
+
 // GET /api/users — List all users (Any authenticated user can list to add members)
 export async function GET() {
   const sessionUser = await getSessionUser();
@@ -70,7 +72,7 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     // Wrap in a transaction if we need to also assign a project
-    const newUser = await prisma.$transaction(async (tx: any) => {
+    const newUser = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const user = await tx.user.create({
         data: {
           name,

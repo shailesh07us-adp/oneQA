@@ -6,7 +6,6 @@ import Link from "next/link";
 import {
   Users,
   CheckCircle2,
-  Clock,
   Key,
   Database,
   Zap,
@@ -22,13 +21,36 @@ import { relativeTime } from "@/lib/utils";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 
+interface Member {
+  userId: string;
+  role: string;
+}
+
+interface Project {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  _count?: {
+    testRuns: number;
+    apiKeys: number;
+  };
+  members: Member[];
+}
+
+interface ProjectUser {
+  id: string;
+  name: string | null;
+  email: string | null;
+}
+
 export default function ProjectsPage() {
   const { data: session } = useSession();
-  const currentUserId = (session?.user as any)?.id;
-  const globalRole = (session?.user as any)?.globalRole;
+  const currentUserId = session?.user?.id;
+  const globalRole = session?.user?.globalRole;
 
-  const [projects, setProjects] = useState<any[]>([]);
-  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [allUsers, setAllUsers] = useState<ProjectUser[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Create Project State
@@ -38,7 +60,7 @@ export default function ProjectsPage() {
 
   // Add Member State
   const [showMemberModal, setShowMemberModal] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [newMemberId, setNewMemberId] = useState("");
   const [newMemberRole, setNewMemberRole] = useState("CONTRIBUTOR");
   const [addingMember, setAddingMember] = useState(false);
@@ -204,11 +226,11 @@ export default function ProjectsPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
-                {projects.map((project: any, idx: number) => {
+                {projects.map((project: Project, idx: number) => {
                   const runCount = project._count?.testRuns || 0;
                   const keyCount = project._count?.apiKeys || 0;
                   const memberCount = project.members?.length || 0;
-                  const isLead = globalRole === "ADMIN" || project.members?.some((m: any) => m.userId === currentUserId && m.role === "PROJECT_LEAD");
+                  const isLead = globalRole === "ADMIN" || project.members?.some((m: Member) => m.userId === currentUserId && m.role === "PROJECT_LEAD");
 
                   return (
                     <Link 
@@ -365,7 +387,7 @@ export default function ProjectsPage() {
                   className="w-full px-5 py-4 rounded-2xl bg-[#0c1021] border border-white/5 text-white focus:outline-none focus:border-indigo-500/50 transition-all text-sm font-bold appearance-none"
                 >
                   <option value="" disabled className="bg-[#0c1021]">Select a team member...</option>
-                  {allUsers.filter(u => !selectedProject.members.some((m: any) => m.userId === u.id)).map(u => (
+                  {allUsers.filter(u => !selectedProject.members.some((m: Member) => m.userId === u.id)).map(u => (
                     <option key={u.id} value={u.id} className="bg-[#0c1021]">{u.name || u.email}</option>
                   ))}
                 </select>
@@ -423,8 +445,8 @@ export default function ProjectsPage() {
   );
 }
 
-function ProjectKPICard({ label, value, desc, icon, color }: any) {
-  const map: any = {
+function ProjectKPICard({ label, value, desc, icon, color }: { label: string; value: string; desc: string; icon: React.ReactNode; color: 'sky' | 'amber' | 'indigo' }) {
+  const map: Record<string, string> = {
     sky: "border-sky-500/80 shadow-[0_-12px_20px_-8px_rgba(14,165,233,0.15)]",
     amber: "border-amber-500/80 shadow-[0_-12px_20px_-8px_rgba(245,158,11,0.15)]",
     indigo: "border-indigo-500/80 shadow-[0_-12px_20px_-8px_rgba(99,102,241,0.15)]",
@@ -447,8 +469,8 @@ function ProjectKPICard({ label, value, desc, icon, color }: any) {
   );
 }
 
-function MetricBadge({ icon, label, value, color }: any) {
-  const colors: any = {
+function MetricBadge({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: number; color: 'emerald' | 'purple' | 'sky' }) {
+  const colors: Record<string, string> = {
     emerald: "text-emerald-400",
     purple: "text-purple-400",
     sky: "text-sky-400",

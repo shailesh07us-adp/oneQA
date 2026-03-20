@@ -15,22 +15,26 @@ import {
   ChevronRight,
   Target
 } from "lucide-react";
-import { calculateConfidenceScore, ConfidenceMetrics, classifyFailures } from "@/lib/intelligence";
+import { calculateConfidenceScore, ConfidenceMetrics, classifyFailures, Run } from "@/lib/intelligence";
+
+interface FailureBreakdown {
+  infrastructure: number;
+  bug: number;
+  flaky: number;
+}
 
 export default function CommandCenterPage() {
-  const [runs, setRuns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState<ConfidenceMetrics | null>(null);
-  const [failureBreakdown, setFailureBreakdown] = useState<any>(null);
+  const [failureBreakdown, setFailureBreakdown] = useState<FailureBreakdown | null>(null);
 
   useEffect(() => {
     fetch("/api/runs?limit=200")
       .then(res => res.json())
       .then(data => {
-        const allRuns = data.runs || [];
-        setRuns(allRuns);
+        const allRuns = (data.runs || []) as Run[];
         setMetrics(calculateConfidenceScore(allRuns));
-        setFailureBreakdown(classifyFailures(allRuns));
+        setFailureBreakdown(classifyFailures(allRuns) as FailureBreakdown);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -164,9 +168,9 @@ export default function CommandCenterPage() {
             <div className="glass rounded-2xl p-6">
               <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400">AI Failure Fingerprinting</h3>
               <div className="space-y-6">
-                <FingerprintRow label="System/Infrastructure" count={failureBreakdown?.infrastructure} total={failureBreakdown?.infrastructure + failureBreakdown?.bug + failureBreakdown?.flaky} color="indigo" icon={<Database className="w-3.5 h-3.5" />} />
-                <FingerprintRow label="Confirmed Regressions" count={failureBreakdown?.bug} total={failureBreakdown?.infrastructure + failureBreakdown?.bug + failureBreakdown?.flaky} color="rose" icon={<Bug className="w-3.5 h-3.5" />} />
-                <FingerprintRow label="Flaky & Environmental" count={failureBreakdown?.flaky} total={failureBreakdown?.infrastructure + failureBreakdown?.bug + failureBreakdown?.flaky} color="amber" icon={<RefreshCw className="w-3.5 h-3.5 text-amber-500" />} />
+                <FingerprintRow label="System/Infrastructure" count={failureBreakdown?.infrastructure || 0} total={(failureBreakdown?.infrastructure || 0) + (failureBreakdown?.bug || 0) + (failureBreakdown?.flaky || 0)} color="indigo" icon={<Database className="w-3.5 h-3.5" />} />
+                <FingerprintRow label="Confirmed Regressions" count={failureBreakdown?.bug || 0} total={(failureBreakdown?.infrastructure || 0) + (failureBreakdown?.bug || 0) + (failureBreakdown?.flaky || 0)} color="rose" icon={<Bug className="w-3.5 h-3.5" />} />
+                <FingerprintRow label="Flaky & Environmental" count={failureBreakdown?.flaky || 0} total={(failureBreakdown?.infrastructure || 0) + (failureBreakdown?.bug || 0) + (failureBreakdown?.flaky || 0)} color="amber" icon={<RefreshCw className="w-3.5 h-3.5 text-amber-500" />} />
               </div>
             </div>
 
@@ -221,8 +225,16 @@ export default function CommandCenterPage() {
   );
 }
 
-function IntelligenceCard({ label, value, desc, icon, color }: any) {
-  const colors: any = {
+interface IntelligenceCardProps {
+  label: string;
+  value: string;
+  desc: string;
+  icon: React.ReactNode;
+  color: 'indigo' | 'purple' | 'amber';
+}
+
+function IntelligenceCard({ label, value, desc, icon, color }: IntelligenceCardProps) {
+  const colors = {
     indigo: "from-indigo-500/20 text-indigo-400 border-indigo-500/30",
     purple: "from-purple-500/20 text-purple-400 border-purple-500/30",
     amber: "from-amber-500/20 text-amber-400 border-amber-500/30",
@@ -241,9 +253,17 @@ function IntelligenceCard({ label, value, desc, icon, color }: any) {
   );
 }
 
-function FingerprintRow({ label, count, total, color, icon }: any) {
+interface FingerprintRowProps {
+  label: string;
+  count: number;
+  total: number;
+  color: 'indigo' | 'rose' | 'amber';
+  icon: React.ReactNode;
+}
+
+function FingerprintRow({ label, count, total, color, icon }: FingerprintRowProps) {
   const perc = total > 0 ? (count / total) * 100 : 0;
-  const colors: any = {
+  const colors = {
     indigo: "bg-indigo-500 shadow-indigo-500/20",
     rose: "bg-rose-500 shadow-rose-500/20",
     amber: "bg-amber-500 shadow-amber-500/20",
@@ -264,7 +284,12 @@ function FingerprintRow({ label, count, total, color, icon }: any) {
   );
 }
 
-function HeatmapCell({ label, status }: any) {
+interface HeatmapCellProps {
+  label: string;
+  status: 'critical' | 'stable' | 'warning';
+}
+
+function HeatmapCell({ label, status }: HeatmapCellProps) {
   const isCritical = status === 'critical';
   const isWarning = status === 'warning';
   return (

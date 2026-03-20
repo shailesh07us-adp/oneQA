@@ -3,11 +3,29 @@ import { Clock, Zap, TrendingDown, Timer, ArrowDown, ArrowUp } from "lucide-reac
 
 export const dynamic = "force-dynamic";
 
+interface PerformanceTest {
+  id: string;
+  title: string;
+  duration: number;
+}
+
+interface PerformanceSuite {
+  id: string;
+  tests: PerformanceTest[];
+}
+
+interface PerformanceRun {
+  project: string;
+  env: string;
+  duration: number | null;
+  suites: PerformanceSuite[];
+}
+
 export default async function PerformancePage() {
-  const runs = await prisma.testRun.findMany({
+  const runs = (await prisma.testRun.findMany({
     orderBy: { startTime: "desc" },
     include: { suites: { include: { tests: true } } },
-  });
+  })) as unknown as PerformanceRun[];
 
   if (runs.length === 0) {
     return (
@@ -18,7 +36,7 @@ export default async function PerformancePage() {
   }
 
   // Global duration stats
-  const durations = runs.map((r: any) => r.duration || 0);
+  const durations = runs.map((r: PerformanceRun) => r.duration || 0);
   const avgDuration = Math.round(durations.reduce((a: number, b: number) => a + b, 0) / durations.length / 1000);
   const maxDuration = Math.round(Math.max(...durations) / 1000);
   const minDuration = Math.round(Math.min(...durations) / 1000);
@@ -26,7 +44,7 @@ export default async function PerformancePage() {
 
   // Per-project avg duration
   const projectDurations: Record<string, { total: number; count: number; runs: number[] }> = {};
-  runs.forEach((r: any) => {
+  runs.forEach((r: PerformanceRun) => {
     if (!projectDurations[r.project]) projectDurations[r.project] = { total: 0, count: 0, runs: [] };
     projectDurations[r.project].total += r.duration || 0;
     projectDurations[r.project].count++;
@@ -45,7 +63,7 @@ export default async function PerformancePage() {
 
   // Slowest individual test cases
   const testDurations: Record<string, { total: number; count: number; max: number }> = {};
-  runs.forEach((r: any) => r.suites?.forEach((s: any) => s.tests?.forEach((t: any) => {
+  runs.forEach((r: PerformanceRun) => r.suites?.forEach((s: PerformanceSuite) => s.tests?.forEach((t: PerformanceTest) => {
     if (!testDurations[t.title]) testDurations[t.title] = { total: 0, count: 0, max: 0 };
     testDurations[t.title].total += t.duration;
     testDurations[t.title].count++;
@@ -58,7 +76,7 @@ export default async function PerformancePage() {
 
   // Per-environment avg duration
   const envDurations: Record<string, { total: number; count: number }> = {};
-  runs.forEach((r: any) => {
+  runs.forEach((r: PerformanceRun) => {
     if (!envDurations[r.env]) envDurations[r.env] = { total: 0, count: 0 };
     envDurations[r.env].total += r.duration || 0;
     envDurations[r.env].count++;

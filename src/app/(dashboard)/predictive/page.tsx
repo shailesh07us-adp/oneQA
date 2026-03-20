@@ -15,8 +15,41 @@ import { ReleaseReadinessGauge } from "@/components/ReleaseReadinessGauge";
 import { ExecutiveGauge } from "@/components/ExecutiveGauge";
 import { Skeleton } from "@/components/ui/skeleton";
 
+interface TestPlan {
+  name: string;
+  project: string;
+  passedPercent: number;
+  totalTests: number;
+  automated: number;
+  manual: number;
+}
+
+interface AdoData {
+  isLive: boolean;
+  releaseReadiness: {
+    score: number;
+    label: string;
+    color: string;
+    breakdown: Array<{ category: string; score: number; weight: number; weighted: number; insight: string }>;
+  };
+  stability: { score: number; label: string; color: string };
+  efficiency: { score: number; label: string; color: string };
+  threatLevel: { score: number; label: string; color: string };
+  defects: {
+    p1: number;
+    p2: number;
+    p3: number;
+    p4: number;
+    activeCount: number;
+    resolvedLast7Days: number;
+    trend: Array<{ date: string; opened: number; resolved: number }>;
+  };
+  projectHealth: Array<{ project: string; score: number; trend: string; passRate: number; activeBugs: number; health: "green" | "yellow" | "red" }>;
+  testPlans: TestPlan[];
+}
+
 export default function PredictiveAnalysisPage() {
-  const [adoData, setAdoData] = useState<any>(null);
+  const [adoData, setAdoData] = useState<AdoData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -150,7 +183,7 @@ export default function PredictiveAnalysisPage() {
                   </p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {adoData.testPlans.map((plan: any) => (
+                  {adoData.testPlans.map((plan: TestPlan) => (
                     <div
                       key={plan.name}
                       className="rounded-xl bg-slate-800/30 border border-slate-700/30 p-4"
