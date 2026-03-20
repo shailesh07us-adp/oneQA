@@ -14,6 +14,8 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { relativeTime } from "@/lib/utils";
 import { toast } from "sonner";
@@ -40,6 +42,7 @@ export default function UsersPage() {
   const [activeTab, setActiveTab] = useState<"users" | "approvals">("users");
   const [pendingUsers, setPendingUsers] = useState<any[]>([]);
   const [processingApproval, setProcessingApproval] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const currentUserId = (session?.user as any)?.id;
   const currentRole = (session?.user as any)?.globalRole;
@@ -392,7 +395,25 @@ export default function UsersPage() {
                 </div>
                 <div>
                   <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Password *</label>
-                  <input type="password" required value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Minimum 6 characters" minLength={6} autoComplete="new-password" className="w-full mt-1.5 px-4 py-2.5 rounded-lg bg-slate-800/50 border border-slate-700/50 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 text-sm" />
+                  <div className="relative mt-1.5">
+                    <input 
+                      type={showPassword ? "text" : "password"} 
+                      required 
+                      value={form.password} 
+                      onChange={(e) => setForm({ ...form, password: e.target.value })} 
+                      placeholder="Minimum 6 characters" 
+                      minLength={6} 
+                      autoComplete="new-password" 
+                      className="w-full px-4 py-2.5 rounded-lg bg-slate-800/50 border border-slate-700/50 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 text-sm pr-10" 
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Global Role</label>

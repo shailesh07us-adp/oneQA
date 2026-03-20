@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Lock, Mail, Shield, AlertCircle, ArrowRight, User, Clock, ShieldCheck } from "lucide-react";
+import { Lock, Mail, Shield, AlertCircle, ArrowRight, User, Clock, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 
 function LoginRegisterForms() {
@@ -23,6 +23,10 @@ function LoginRegisterForms() {
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerError, setRegisterError] = useState<string | null>(null);
   const [registerSuccess, setRegisterSuccess] = useState(false);
+
+  // Visibility States
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,13 +164,20 @@ function LoginRegisterForms() {
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
                     <input
-                      type="password"
+                      type={showLoginPassword ? "text" : "password"}
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       required
                       placeholder="••••••••"
-                      className="w-full pl-12 pr-4 py-3 rounded-lg bg-slate-800/50 border border-slate-700/50 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all font-medium"
+                      className="w-full pl-12 pr-12 py-3 rounded-lg bg-slate-800/50 border border-slate-700/50 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all font-medium"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowLoginPassword(!showLoginPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-400 transition-colors"
+                    >
+                      {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
                 </div>
 
@@ -293,18 +304,25 @@ function LoginRegisterForms() {
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Password</label>
                       <div className="relative">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
-                        <input 
-                          required
-                          type="password"
-                          autoComplete="new-password"
-                          value={registerData.password}
-                          onChange={e => setRegisterData({...registerData, password: e.target.value})}
-                          minLength={6}
-                          className="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl pl-12 pr-6 py-3 text-sm text-white placeholder-slate-700 focus:outline-none focus:border-indigo-500/50 transition-all font-medium"
-                          placeholder="Min. 6 characters"
-                        />
-                      </div>
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
+                      <input 
+                        required
+                        type={showRegisterPassword ? "text" : "password"}
+                        autoComplete="new-password"
+                        value={registerData.password}
+                        onChange={e => setRegisterData({...registerData, password: e.target.value})}
+                        minLength={6}
+                        className="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl pl-12 pr-12 py-3 text-sm text-white placeholder-slate-700 focus:outline-none focus:border-indigo-500/50 transition-all font-medium"
+                        placeholder="Min. 6 characters"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-400 transition-colors"
+                      >
+                        {showRegisterPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
                     </div>
 
                     <button 
