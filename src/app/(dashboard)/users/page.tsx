@@ -18,6 +18,7 @@ import {
 import { relativeTime } from "@/lib/utils";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import AccessDenied from "@/components/AccessDenied";
 
 const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
   ADMIN: { label: "Admin", cls: "bg-rose-500/10 text-rose-400 border-rose-500/20" },
@@ -127,13 +128,9 @@ export default function UsersPage() {
 
   if (currentRole !== "ADMIN") {
     return (
-      <div className="flex-1 flex items-center justify-center bg-[#0a0e1a]">
-        <div className="text-center">
-          <Shield className="w-12 h-12 text-slate-700 mx-auto mb-4" />
-          <p className="text-slate-400 text-lg font-medium">Access Denied</p>
-          <p className="text-slate-600 text-sm mt-1">Only administrators can manage users.</p>
-        </div>
-      </div>
+      <AccessDenied 
+        message="Only administrators can manage users and platform-wide access rules."
+      />
     );
   }
 

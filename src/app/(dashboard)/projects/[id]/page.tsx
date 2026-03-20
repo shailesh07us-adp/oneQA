@@ -20,6 +20,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
+import AccessDenied from "@/components/AccessDenied";
 
 export default function ProjectDetailPage() {
   const { id } = useParams();
@@ -80,42 +81,44 @@ export default function ProjectDetailPage() {
   if (!project || project.error) {
     const isForbidden = project?.error === "Forbidden";
     
-    return (
-      <>
-        <div className="flex-1 flex flex-col items-center justify-center text-center px-4 overflow-hidden relative">
-          {/* Background Ornaments */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
-          
-          <div className="relative z-10 glass rounded-3xl p-12 max-w-lg w-full border border-slate-700/50 shadow-2xl shadow-black/80 fade-in-up">
-            <div className={`w-20 h-20 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-8 border border-slate-700/50 group relative ${isForbidden ? "glow-red" : "glow-indigo"}`}>
-              <div className={`absolute inset-0 rounded-2xl animate-ping opacity-20 ${isForbidden ? "bg-rose-500/20" : "bg-indigo-500/20"}`} />
-              {isForbidden ? (
-                <ShieldAlert className="w-10 h-10 text-rose-400" />
-              ) : (
-                <FolderX className="w-10 h-10 text-indigo-400" />
-              )}
-            </div>
-            
-            <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-slate-500 drop-shadow-sm tracking-tight mb-4">
-              {isForbidden ? "Access Denied" : "Project Not Found"}
-            </h1>
-            
-            <p className="text-slate-400 mb-8 max-w-sm mx-auto">
-              {isForbidden 
-                ? "You don't have permission to view this project. If you believe this is an error, please contact your administrator." 
-                : "The project you are looking for might have been deleted, or the URL is incorrect."}
-            </p>
+    if (isForbidden) {
+      return (
+        <AccessDenied 
+          message="You don't have permission to view this project. If you believe this is an error, please contact your administrator."
+          backLink="/projects"
+          backText="Back to Projects"
+        />
+      );
+    }
 
-            <Link 
-              href="/projects" 
-              className="inline-flex items-center justify-center w-full px-6 py-3 rounded-xl bg-slate-800 text-white font-medium hover:bg-slate-700 hover:shadow-lg transition-all active:scale-95"
-            >
-              Back to Projects
-            </Link>
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center text-center px-4 overflow-hidden relative">
+        {/* Background Ornaments */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+        
+        <div className="relative z-10 glass rounded-3xl p-12 max-w-lg w-full border border-slate-700/50 shadow-2xl shadow-black/80 fade-in-up">
+          <div className="w-20 h-20 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-8 border border-slate-700/50 group relative glow-indigo">
+            <div className="absolute inset-0 rounded-2xl animate-ping opacity-20 bg-indigo-500/20" />
+            <FolderX className="w-10 h-10 text-indigo-400" />
           </div>
+          
+          <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-slate-500 drop-shadow-sm tracking-tight mb-4">
+            Project Not Found
+          </h1>
+          
+          <p className="text-slate-400 mb-8 max-w-sm mx-auto">
+            The project you are looking for might have been deleted, or the URL is incorrect.
+          </p>
+
+          <Link 
+            href="/projects" 
+            className="inline-flex items-center justify-center w-full px-6 py-3 rounded-xl bg-slate-800 text-white font-medium hover:bg-slate-700 hover:shadow-lg transition-all active:scale-95"
+          >
+            Back to Projects
+          </Link>
         </div>
-      </>
+      </div>
     );
   }
 
