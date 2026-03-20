@@ -19,6 +19,7 @@ import { relativeTime } from "@/lib/utils";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import AccessDenied from "@/components/AccessDenied";
+import ConfirmationDialog from "@/components/ui/ConfirmationDialog";
 
 const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
   ADMIN: { label: "Admin", cls: "bg-rose-500/10 text-rose-400 border-rose-500/20" },
@@ -34,7 +35,8 @@ export default function UsersPage() {
   const [form, setForm] = useState({ name: "", email: "", password: "", role: "USER", projectId: "", projectRole: "CONTRIBUTOR" });
   const [creating, setCreating] = useState(false);
   const [editingRole, setEditingRole] = useState<string | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [userToDelete, setUserToDelete] = useState<any | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [activeTab, setActiveTab] = useState<"users" | "approvals">("users");
   const [pendingUsers, setPendingUsers] = useState<any[]>([]);
   const [processingApproval, setProcessingApproval] = useState<string | null>(null);
@@ -94,14 +96,17 @@ export default function UsersPage() {
     fetchUsersAndProjects();
   };
 
-  const handleDelete = async (userId: string) => {
-    const res = await fetch(`/api/users/${userId}`, { method: "DELETE" });
+  const handleDelete = async () => {
+    if (!userToDelete) return;
+    setIsDeleting(true);
+    const res = await fetch(`/api/users/${userToDelete.id}`, { method: "DELETE" });
     if (res.ok) {
-      toast.success("User deleted successfully");
+      toast.success(`User ${userToDelete.name || userToDelete.email} deleted successfully`);
     } else {
       toast.error("Failed to delete user");
     }
-    setDeleteConfirm(null);
+    setUserToDelete(null);
+    setIsDeleting(false);
     fetchUsersAndProjects();
   };
 
@@ -287,13 +292,8 @@ export default function UsersPage() {
                           <td className="px-6 py-4 text-right">
                             {isSelf ? (
                               <span className="text-xs text-slate-600">—</span>
-                            ) : deleteConfirm === user.id ? (
-                              <div className="flex items-center gap-2 justify-end">
-                                <button onClick={() => handleDelete(user.id)} className="text-xs text-rose-400 hover:text-rose-300 font-medium">Confirm</button>
-                                <button onClick={() => setDeleteConfirm(null)} className="text-xs text-slate-500 hover:text-white">Cancel</button>
-                              </div>
                             ) : (
-                              <button onClick={() => setDeleteConfirm(user.id)} className="p-1.5 rounded-md text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 transition-colors" title="Delete user">
+                              <button onClick={() => setUserToDelete(user)} className="p-1.5 rounded-md text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 transition-colors" title="Delete user">
                                 <Trash2 className="w-4 h-4" />
                               </button>
                             )}
@@ -462,6 +462,17 @@ export default function UsersPage() {
             </div>
           </div>
         )}
+
+        <ConfirmationDialog
+          isOpen={!!userToDelete}
+          onClose={() => setUserToDelete(null)}
+          onConfirm={handleDelete}
+          isLoading={isDeleting}
+          title="Delete User"
+          description={`Are you sure you want to delete ${userToDelete?.name || userToDelete?.email}? This action will permanently remove their access and all associated data.`}
+          confirmLabel="Delete User"
+          variant="danger"
+        />
     </>
   );
 }
