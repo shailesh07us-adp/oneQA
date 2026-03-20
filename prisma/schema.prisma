@@ -31,7 +31,7 @@ model Project {
   updatedAt   DateTime        @updatedAt
   archived    Boolean         @default(false)
   ownerId     String?
-  owner       User?           @relation(fields: [ownerId], references: [id])
+  owner       User?           @relation(fields: [ownerId], references: [id], onDelete: SetNull)
   apiKeys     ApiKey[]
   testRuns    TestRun[]
   builds      Build[]

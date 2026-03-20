@@ -36,6 +36,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "User ID and action are required" }, { status: 400 });
     }
 
+    const userToApprove = await prisma.user.findUnique({
+      where: { id: userId }
+    });
+
+    if (!userToApprove) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    if (action === "APPROVE") {
+      // Check if another user with the same email is already APPROVED
+      const existingActiveUser = await prisma.user.findFirst({
+        where: {
+          email: userToApprove.email,
+          status: "APPROVED",
+          id: { not: userId }
+        }
+      });
+
+      if (existingActiveUser) {
+        return NextResponse.json({ 
+          error: "A user with this active email already exists." 
+        }, { status: 400 });
+      }
+    }
+
     const newStatus = action === "APPROVE" ? "APPROVED" : "REJECTED";
 
     const updatedUser = await prisma.user.update({

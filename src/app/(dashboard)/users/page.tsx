@@ -79,6 +79,7 @@ export default function UsersPage() {
     setForm({ name: "", email: "", password: "", role: "USER", projectId: "", projectRole: "CONTRIBUTOR" });
     setCreating(false);
     fetchUsersAndProjects();
+    window.dispatchEvent(new CustomEvent("pending-approvals-updated"));
   };
 
   const handleRoleChange = async (userId: string, newRole: string) => {
@@ -98,16 +99,27 @@ export default function UsersPage() {
 
   const handleDelete = async () => {
     if (!userToDelete) return;
+    console.log("UsersPage: Starting deletion for user", userToDelete.id);
     setIsDeleting(true);
-    const res = await fetch(`/api/users/${userToDelete.id}`, { method: "DELETE" });
-    if (res.ok) {
-      toast.success(`User ${userToDelete.name || userToDelete.email} deleted successfully`);
-    } else {
-      toast.error("Failed to delete user");
+    try {
+      const res = await fetch(`/api/users/${userToDelete.id}`, { method: "DELETE" });
+      console.log("UsersPage: Deletion response status", res.status);
+      if (res.ok) {
+        toast.success(`User ${userToDelete.name || userToDelete.email} deleted successfully`);
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        console.error("UsersPage: Deletion failed", errorData);
+        toast.error(errorData.error || "Failed to delete user");
+      }
+    } catch (error) {
+      console.error("UsersPage: Error during delete fetch", error);
+      toast.error("An unexpected error occurred");
+    } finally {
+      setUserToDelete(null);
+      setIsDeleting(false);
+      fetchUsersAndProjects();
+      window.dispatchEvent(new CustomEvent("pending-approvals-updated"));
     }
-    setUserToDelete(null);
-    setIsDeleting(false);
-    fetchUsersAndProjects();
   };
 
   const handleApprovalAction = async (userId: string, action: "APPROVE" | "REJECT") => {
@@ -121,6 +133,7 @@ export default function UsersPage() {
       if (res.ok) {
         toast.success(`User ${action === "APPROVE" ? "approved" : "rejected"} successfully`);
         fetchUsersAndProjects();
+        window.dispatchEvent(new CustomEvent("pending-approvals-updated"));
       } else {
         toast.error(`Failed to ${action.toLowerCase()} user`);
       }

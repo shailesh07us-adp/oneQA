@@ -1,13 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 import prisma from "@/lib/db";
-import { requireGlobalRole } from "@/lib/rbac";
 
 // PUT /api/users/[id] — Update user role (ADMIN only)
-export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await requireGlobalRole("ADMIN");
-  if (!auth.authorized) return auth.response;
+// (Keeping this standard for now as it doesn't hang)
+export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET || "oneqa-enterprise-secret-change-in-production" });
+  if (!token || token.globalRole !== "ADMIN") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
 
-  const { id } = await params;
+  const id = params.id;
   const body = await req.json();
   const { name, role } = body;
 
@@ -17,7 +20,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   }
 
   // Prevent demoting yourself
-  if (id === auth.session.id && role && role !== "ADMIN") {
+  if (id === token.id && role && role !== "ADMIN") {
     return NextResponse.json({ error: "Cannot change your own role" }, { status: 400 });
   }
 
@@ -35,17 +38,28 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 }
 
 // DELETE /api/users/[id] — Delete user (ADMIN only)
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await requireGlobalRole("ADMIN");
-  if (!auth.authorized) return auth.response;
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+  const id = params.id;
+  
+  try {
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET || "oneqa-enterprise-secret-change-in-production" });
 
-  const { id } = await params;
+    if (!token || token.globalRole !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
 
-  // Prevent deleting yourself
-  if (id === auth.session.id) {
-    return NextResponse.json({ error: "Cannot delete your own account" }, { status: 400 });
+    if (id === token.id) {
+      return NextResponse.json({ error: "Cannot delete your own account" }, { status: 400 });
+    }
+
+    // Using Prisma's native delete which is highly optimized for SQLite 
+    // and automatically handles cascading as defined in the schema.
+    await prisma.user.delete({
+      where: { id }
+    });
+    return NextResponse.json({ ok: true });
+  } catch (error: any) {
+    console.error("DELETE API error:", error);
+    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
   }
-
-  await prisma.user.delete({ where: { id } });
-  return NextResponse.json({ ok: true });
 }

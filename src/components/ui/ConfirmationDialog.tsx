@@ -1,6 +1,6 @@
 "use client";
 
-import { X, AlertTriangle, AlertOctagon } from "lucide-react";
+import { X, AlertTriangle, AlertOctagon, Loader2 } from "lucide-react";
 
 interface ConfirmationDialogProps {
   isOpen: boolean;
@@ -89,10 +89,18 @@ export default function ConfirmationDialog({
           <div className="flex flex-col w-full gap-3">
             <button 
               disabled={isLoading}
-              onClick={onConfirm}
-              className={`w-full py-4 rounded-xl text-white text-xs font-black uppercase tracking-widest transition-all shadow-xl disabled:opacity-50 ${style.button}`}
+              onClick={() => {
+                console.log("ConfirmationDialog: Confirm clicked");
+                onConfirm();
+              }}
+              className={`w-full py-4 rounded-xl text-white text-xs font-black uppercase tracking-widest transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-2 ${style.button}`}
             >
-              {isLoading ? "Processing..." : confirmLabel}
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Processing...
+                </>
+              ) : confirmLabel}
             </button>
             <button 
               disabled={isLoading}

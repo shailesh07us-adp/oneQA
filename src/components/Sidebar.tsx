@@ -103,6 +103,20 @@ export default function Sidebar() {
     fetchPendingApprovalsCount();
   }, [pathname, userRole]); // Refresh on navigation so badge stays in sync
 
+  useEffect(() => {
+    const handleUpdate = () => {
+      if (userRole === "ADMIN") {
+        fetch("/api/admin/users/approve")
+          .then(res => res.ok ? res.json() : [])
+          .then(data => setPendingApprovalsCount(data.length))
+          .catch(e => console.error("Sidebar pending approvals fetch failed", e));
+      }
+    };
+
+    window.addEventListener("pending-approvals-updated", handleUpdate);
+    return () => window.removeEventListener("pending-approvals-updated", handleUpdate);
+  }, [userRole]);
+
   const renderNavItem = (item: { href: string; label: string; icon: any; minGlobalRole?: string | null; badge?: string }) => {
     if (!canSee(item.minGlobalRole || null)) return null;
     const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
