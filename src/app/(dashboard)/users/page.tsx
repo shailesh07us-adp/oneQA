@@ -250,7 +250,7 @@ export default function UsersPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/40">
-                    {users.map((user) => {
+                    {users.filter(u => u.status === "APPROVED").map((user) => {
                       const badge = ROLE_BADGES[user.globalRole] || ROLE_BADGES.USER;
                       const isSelf = user.id === currentUserId;
                       return (

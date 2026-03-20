@@ -15,6 +15,7 @@ export async function GET() {
       email: true,
       name: true,
       globalRole: true,
+      status: true,
       createdAt: true,
       memberships: {
         select: {
@@ -48,12 +49,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (password.length < 6) {
+      return NextResponse.json(
+        { error: "Password must be at least 6 characters long" },
+        { status: 400 }
+      );
+    }
+
     const validRoles = ["ADMIN", "USER"];
     if (role && !validRoles.includes(role)) {
       return NextResponse.json({ error: `Invalid role. Must be one of: ${validRoles.join(", ")}` }, { status: 400 });
     }
 
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const normalizedEmail = email.toLowerCase().trim();
+    const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existing) {
       return NextResponse.json({ error: "A user with this email already exists" }, { status: 409 });
     }
@@ -65,9 +74,10 @@ export async function POST(req: NextRequest) {
       const user = await tx.user.create({
         data: {
           name,
-          email,
+          email: normalizedEmail,
           passwordHash: hashedPassword, 
           globalRole: role,
+          status: "APPROVED", // Admin-added users are approved by default
         },
         select: {
           id: true,

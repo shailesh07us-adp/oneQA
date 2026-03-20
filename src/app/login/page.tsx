@@ -300,8 +300,9 @@ function LoginRegisterForms() {
                           autoComplete="new-password"
                           value={registerData.password}
                           onChange={e => setRegisterData({...registerData, password: e.target.value})}
+                          minLength={6}
                           className="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl pl-12 pr-6 py-3 text-sm text-white placeholder-slate-700 focus:outline-none focus:border-indigo-500/50 transition-all font-medium"
-                          placeholder="••••••••"
+                          placeholder="Min. 6 characters"
                         />
                       </div>
                     </div>
