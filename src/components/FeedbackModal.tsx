@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { 
   MessageSquare, 
   Sparkles, 
@@ -34,6 +35,11 @@ export default function FeedbackModal({ isOpen, onClose }: { isOpen: boolean; on
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Form states
   const [contactForm, setContactForm] = useState({ message: "" });
@@ -114,7 +120,7 @@ export default function FeedbackModal({ isOpen, onClose }: { isOpen: boolean; on
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const statusMap: Record<string, { label: string; icon: any; color: string; bg: string }> = {
     PENDING: { label: "Pending", icon: Clock, color: "text-slate-400", bg: "bg-slate-500/10" },
@@ -124,7 +130,7 @@ export default function FeedbackModal({ isOpen, onClose }: { isOpen: boolean; on
     REJECTED: { label: "Declined", icon: X, color: "text-rose-400", bg: "bg-rose-500/10" },
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
       
@@ -302,6 +308,7 @@ export default function FeedbackModal({ isOpen, onClose }: { isOpen: boolean; on
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
