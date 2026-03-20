@@ -53,12 +53,40 @@ export default function Sidebar() {
   const [triageCount, setTriageCount] = useState<number | null>(null);
   const [pendingApprovalsCount, setPendingApprovalsCount] = useState<number | null>(null);
 
+  const userRole = ((session?.user as any)?.globalRole || "USER") as string;
+  const userName = session?.user?.name || session?.user?.email || "User";
+  const initials = userName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+
+  const roleBadge: Record<string, { label: string; cls: string }> = {
+    ADMIN: { label: "Admin", cls: "text-rose-400" },
+    USER: { label: "User", cls: "text-indigo-400" },
+  };
+  const badge = roleBadge[userRole] || roleBadge.USER;
+
+  const canSee = (minGlobalRole: string | null) => {
+    if (!minGlobalRole) return true;
+    return userRole === "ADMIN" || userRole === minGlobalRole;
+  };
+
   useEffect(() => {
     // Reset navigating state when pathname changes (navigation complete)
     setNavigatingTo(null);
   }, [pathname]);
 
   useEffect(() => {
+    async function fetchTriageCount() {
+      try {
+        const res = await fetch("/api/runs?limit=100&status=failed");
+        if (res.ok) {
+          const data = await res.json();
+          const clusters = clusterFailures(data.runs || []);
+          setTriageCount(clusters.length);
+        }
+      } catch (e) {
+        console.error("Sidebar triage count fetch failed", e);
+      }
+    }
+
     async function fetchPendingApprovalsCount() {
       if (userRole !== "ADMIN") return;
       try {
@@ -74,21 +102,6 @@ export default function Sidebar() {
     fetchTriageCount();
     fetchPendingApprovalsCount();
   }, [pathname, userRole]); // Refresh on navigation so badge stays in sync
-
-  const userName = session?.user?.name || session?.user?.email || "User";
-  const userRole = ((session?.user as any)?.globalRole || "USER") as string;
-  const initials = userName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
-
-  const roleBadge: Record<string, { label: string; cls: string }> = {
-    ADMIN: { label: "Admin", cls: "text-rose-400" },
-    USER: { label: "User", cls: "text-indigo-400" },
-  };
-  const badge = roleBadge[userRole] || roleBadge.USER;
-
-  const canSee = (minGlobalRole: string | null) => {
-    if (!minGlobalRole) return true;
-    return userRole === "ADMIN" || userRole === minGlobalRole;
-  };
 
   const renderNavItem = (item: { href: string; label: string; icon: any; minGlobalRole?: string | null; badge?: string }) => {
     if (!canSee(item.minGlobalRole || null)) return null;
