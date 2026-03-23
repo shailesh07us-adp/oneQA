@@ -1,16 +1,14 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Lock, Mail, Shield, AlertCircle, ArrowRight, User, Clock, ShieldCheck, Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 function LoginRegisterForms() {
   const [isFlipped, setIsFlipped] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   // Login State
   const [loginEmail, setLoginEmail] = useState("");
@@ -32,6 +30,9 @@ function LoginRegisterForms() {
     e.preventDefault();
     setLoginError("");
     setLoginLoading(true);
+
+    const params = new URLSearchParams(window.location.search);
+    const callbackUrl = params.get("callbackUrl") || "/";
 
     const res = await signIn("credentials", {
       email: loginEmail,
@@ -125,10 +126,10 @@ function LoginRegisterForms() {
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/5 blur-[120px] rounded-full lg:hidden" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/5 blur-[120px] rounded-full lg:hidden" />
 
-        <div className="w-full max-w-md perspective-1000">
-          <div className={`flip-card-inner ${isFlipped ? 'flipped' : ''}`}>
-            {/* Login Form (Front) */}
-            <div className="flip-card-front space-y-8 relative">
+        <div className="w-full max-w-md">
+          {!isFlipped ? (
+            /* Login Form */
+            <div className="space-y-8 relative">
               <div className="lg:hidden flex items-center gap-3 mb-4">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">QA</div>
                 <span className="text-lg font-bold text-white">OneAutomation</span>
@@ -151,6 +152,7 @@ function LoginRegisterForms() {
                   <div className="relative">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
                     <input
+                      suppressHydrationWarning
                       type="email"
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
@@ -166,6 +168,7 @@ function LoginRegisterForms() {
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
                     <input
+                      suppressHydrationWarning
                       type={showLoginPassword ? "text" : "password"}
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
@@ -174,6 +177,7 @@ function LoginRegisterForms() {
                       className="w-full pl-12 pr-12 py-3 rounded-lg bg-slate-800/50 border border-slate-700/50 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all font-medium"
                     />
                     <button
+                      suppressHydrationWarning
                       type="button"
                       onClick={() => setShowLoginPassword(!showLoginPassword)}
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-400 transition-colors"
@@ -184,6 +188,7 @@ function LoginRegisterForms() {
                 </div>
 
                 <button
+                  suppressHydrationWarning
                   type="submit"
                   disabled={loginLoading}
                   className="w-full py-5 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 text-[11px] font-black text-white uppercase tracking-[0.2em] shadow-xl shadow-indigo-500/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
@@ -203,12 +208,12 @@ function LoginRegisterForms() {
               </form>
 
               <p className="text-center text-slate-500 text-xs font-bold uppercase tracking-widest pt-4">
-                New user? <button onClick={() => setIsFlipped(true)} className="text-indigo-400 hover:text-indigo-300 transition-colors underline underline-offset-4 decoration-2">Register for Access</button>
+                New user? <button suppressHydrationWarning onClick={() => setIsFlipped(true)} className="text-indigo-400 hover:text-indigo-300 transition-colors underline underline-offset-4 decoration-2">Register for Access</button>
               </p>
             </div>
-
-                {/* Registration Form (Back) */}
-            <div className="flip-card-back space-y-8 relative">
+          ) : (
+            /* Registration Form */
+            <div className="space-y-8 relative animate-in fade-in slide-in-from-bottom-4 duration-300">
               <div className="lg:hidden flex items-center gap-3 mb-4">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">QA</div>
                 <span className="text-lg font-bold text-white">OneAutomation</span>
@@ -246,6 +251,7 @@ function LoginRegisterForms() {
 
                   <div className="pt-2">
                     <button 
+                      suppressHydrationWarning
                       onClick={() => {
                         setRegisterSuccess(false);
                         setIsFlipped(false);
@@ -281,6 +287,7 @@ function LoginRegisterForms() {
                       <div className="relative">
                         <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
                         <input 
+                          suppressHydrationWarning
                           required
                           type="text"
                           autoComplete="off"
@@ -297,6 +304,7 @@ function LoginRegisterForms() {
                       <div className="relative">
                         <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
                         <input 
+                          suppressHydrationWarning
                           required
                           type="email"
                           autoComplete="off"
@@ -313,6 +321,7 @@ function LoginRegisterForms() {
                       <div className="relative">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
                       <input 
+                        suppressHydrationWarning
                         required
                         type={showRegisterPassword ? "text" : "password"}
                         autoComplete="new-password"
@@ -323,6 +332,7 @@ function LoginRegisterForms() {
                         placeholder="Min. 6 characters"
                       />
                       <button
+                        suppressHydrationWarning
                         type="button"
                         onClick={() => setShowRegisterPassword(!showRegisterPassword)}
                         className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-400 transition-colors"
@@ -333,6 +343,7 @@ function LoginRegisterForms() {
                     </div>
 
                     <button 
+                      suppressHydrationWarning
                       disabled={registerLoading}
                       className="w-full py-5 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 text-[11px] font-black text-white uppercase tracking-[0.2em] shadow-xl shadow-indigo-500/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3 pt-6"
                     >
@@ -351,49 +362,18 @@ function LoginRegisterForms() {
                   </form>
 
                   <p className="text-center text-slate-500 text-xs font-bold uppercase tracking-widest pt-4">
-                    Already have an account? <button onClick={() => setIsFlipped(false)} className="text-indigo-400 hover:text-indigo-300 transition-colors underline underline-offset-4 decoration-2">Sign In</button>
+                    Already have an account? <button suppressHydrationWarning onClick={() => setIsFlipped(false)} className="text-indigo-400 hover:text-indigo-300 transition-colors underline underline-offset-4 decoration-2">Sign In</button>
                   </p>
                 </>
               )}
             </div>
-          </div>
+          )}
         </div>
       </div>
-
-      <style jsx>{`
-        .perspective-1000 {
-          perspective: 1000px;
-        }
-        .flip-card-inner {
-          position: relative;
-          width: 100%;
-          min-height: 550px;
-          transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-          transform-style: preserve-3d;
-        }
-        .flipped {
-          transform: rotateY(180deg);
-        }
-        .flip-card-front, .flip-card-back {
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          backface-visibility: hidden;
-          top: 0;
-          left: 0;
-        }
-        .flip-card-back {
-          transform: rotateY(180deg);
-        }
-      `}</style>
     </div>
   );
 }
 
 export default function LoginPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-[#0a0e1a]" />}>
-      <LoginRegisterForms />
-    </Suspense>
-  );
+  return <LoginRegisterForms />;
 }

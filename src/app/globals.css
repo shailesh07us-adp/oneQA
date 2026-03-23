@@ -28,13 +28,16 @@ option {
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: #0f1629;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #1e293b;
   border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #334155;
 }
@@ -69,14 +72,23 @@ option {
 
 /* Animated gradient border */
 @keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .animated-border {
   position: relative;
 }
+
 .animated-border::before {
   content: '';
   position: absolute;
@@ -95,28 +107,19 @@ option {
 
 /* Pulse dot animation */
 @keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
 }
 
 .pulse-dot {
   animation: pulse-dot 2s ease-in-out infinite;
-}
-
-/* Fade in animation */
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.fade-in-up {
-  animation: fade-in-up 0.4s ease-out forwards;
 }
 
 /* 3D Flip Animation */
@@ -141,7 +144,8 @@ option {
   transform: rotateY(180deg);
 }
 
-.flip-card-front, .flip-card-back {
+.flip-card-front,
+.flip-card-back {
   position: absolute;
   width: 100%;
   -webkit-backface-visibility: hidden;
@@ -156,9 +160,17 @@ option {
 
 /* Navigation Progress Bar Animation */
 @keyframes progress {
-  0% { transform: translateX(-100%); }
-  50% { transform: translateX(-30%); }
-  100% { transform: translateX(0%); }
+  0% {
+    transform: translateX(-100%);
+  }
+
+  50% {
+    transform: translateX(-30%);
+  }
+
+  100% {
+    transform: translateX(0%);
+  }
 }
 
 .animate-progress {
@@ -174,17 +186,29 @@ option {
 
 .fade-in {
   @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
   }
+
   animation-name: fade-in;
 }
 
 .zoom-in {
   @keyframes zoom-in {
-    from { transform: scale(0.95); }
-    to { transform: scale(1); }
+    from {
+      transform: scale(0.95);
+    }
+
+    to {
+      transform: scale(1);
+    }
   }
+
   animation-name: zoom-in;
 }
 
