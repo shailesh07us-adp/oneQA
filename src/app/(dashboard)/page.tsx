@@ -6,11 +6,8 @@ import {
   Activity,
   CheckCircle2,
   XCircle,
-  TrendingUp,
-  Zap,
   Clock,
   ArrowRight,
-  BarChart3,
   AlertTriangle,
   FolderOpen,
   Sparkles,
@@ -21,6 +18,7 @@ import { relativeTime } from "@/lib/utils";
 import { TestCaseTrendChart, DurationTrendChart } from "@/components/TrendChart";
 import { TestingPyramid } from "@/components/TestingPyramid";
 import FeedbackModal from "@/components/FeedbackModal";
+import { StatCard } from "@/components/StatCard";
 
 interface Test {
   title: string;
@@ -42,34 +40,6 @@ interface Run {
   type?: string;
 }
 
-function StatCard({ label, value, icon, color }: { label: string; value: string | number; icon: React.ReactNode; color: string }) {
-  const map: Record<string, string> = {
-    indigo: "border-indigo-500/80 shadow-[0_-12px_20px_-8px_rgba(99,102,241,0.25)]",
-    emerald: "border-emerald-500/80 shadow-[0_-12px_20px_-8px_rgba(52,211,153,0.25)]",
-    rose: "border-rose-500/80 shadow-[0_-12px_20px_-8px_rgba(244,63,94,0.25)]",
-    sky: "border-sky-500/80 shadow-[0_-12px_20px_-8px_rgba(14,165,233,0.25)]",
-    amber: "border-amber-500/80 shadow-[0_-12px_20px_-8px_rgba(245,158,11,0.25)]",
-  };
-
-  return (
-    <div className={`glass rounded-[2rem] p-7 relative overflow-hidden border-t-4 transition-all duration-500 group hover:-translate-y-1 ${map[color] || map.indigo}`}>
-      <div className="flex flex-col h-full relative z-10">
-        <div className="flex items-center justify-between mb-6">
-          <div className="p-2 rounded-xl bg-slate-900/50 border border-white/5 transition-transform group-hover:scale-110 duration-500">
-            {icon}
-          </div>
-          <span className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] group-hover:text-slate-400 transition-colors">Realtime</span>
-        </div>
-        <div>
-          <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] block mb-2">{label}</span>
-          <h3 className="text-4xl font-black text-white tracking-tighter group-hover:scale-105 transition-transform origin-left duration-500">{value}</h3>
-        </div>
-      </div>
-      <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-50" />
-    </div>
-  );
-}
-
 function QuickLink({ href, icon, label, desc, color }: { href: string; icon: React.ReactNode; label: string; desc: string; color: string }) {
   const map: Record<string, string> = {
     indigo: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20 group-hover:bg-indigo-500/20",
@@ -89,16 +59,18 @@ function QuickLink({ href, icon, label, desc, color }: { href: string; icon: Rea
 }
 
 export default function DashboardPage() {
-  const [data, setData] = useState<{ runs: Run[]; total: number } | null>(null);
+  const [data, setData] = useState<{ runs: Run[]; total: number; projects: string[] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [selectedProject, setSelectedProject] = useState("all");
 
   useEffect(() => {
-    fetch("/api/runs?limit=100")
+    setLoading(true);
+    fetch(`/api/runs?limit=100&project=${selectedProject}`)
       .then((r) => r.json())
       .then((d) => { setData(d); setLoading(false); })
       .catch(() => setLoading(false));
-  }, []);
+  }, [selectedProject]);
 
   if (loading || !data) {
     return (
@@ -148,6 +120,18 @@ export default function DashboardPage() {
             <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Enterprise QE health at a glance</p>
           </div>
           <div className="flex items-center gap-4">
+            <select
+              value={selectedProject}
+              onChange={(e) => setSelectedProject(e.target.value)}
+              className="bg-[#0f1428] border border-slate-700/50 text-white text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 min-w-[120px] max-w-[200px]"
+            >
+              <option value="all">All Projects</option>
+              {data.projects?.map((proj) => (
+                <option key={proj} value={proj}>
+                  {proj}
+                </option>
+              ))}
+            </select>
             <button 
               onClick={() => setShowFeedback(true)}
               className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold hover:bg-indigo-500/20 transition-all active:scale-95 shadow-lg shadow-indigo-500/5 group"

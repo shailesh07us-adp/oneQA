@@ -15,9 +15,13 @@ import {
   FolderX,
   Clock,
   AlertTriangle,
+  Layers,
 } from "lucide-react";
 import { toast } from "sonner";
 import AccessDenied from "@/components/AccessDenied";
+import { StatCard } from "@/components/StatCard";
+import { TestCaseTrendChart, DurationTrendChart } from "@/components/TrendChart";
+import { TestingPyramid } from "@/components/TestingPyramid";
 
 interface ProjectRun {
   id: string;
@@ -25,6 +29,7 @@ interface ProjectRun {
   env: string;
   startTime: string;
   duration: number | null;
+  type?: string;
 }
 
 interface ProjectApiKey {
@@ -70,7 +75,7 @@ export default function ProjectDetailPage() {
   
   const [project, setProject] = useState<ProjectDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"overview" | "team">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "trends" | "api-keys" | "team">("overview");
 
   // API Key state
   const [generatingKey, setGeneratingKey] = useState(false);
@@ -249,7 +254,9 @@ export default function ProjectDetailPage() {
 
   const runs = project.testRuns || [];
   const passed = runs.filter((r: ProjectRun) => r.status === "passed").length;
+  const failed = runs.filter((r: ProjectRun) => r.status === "failed").length;
   const rate = runs.length > 0 ? Math.round((passed / runs.length) * 100) : 0;
+  const avgDuration = runs.length > 0 ? Math.round(runs.reduce((s: number, r: ProjectRun) => s + (r.duration || 0), 0) / runs.length / 1000) : 0;
 
   return (
     <>
@@ -270,7 +277,7 @@ export default function ProjectDetailPage() {
             <p className="text-[10px] text-slate-500 font-mono uppercase tracking-widest font-semibold mt-0.5">{project.slug}</p>
           </div>
           <div className="flex items-center gap-2">
-            {canManageProject && (
+            {canManageProject && activeTab === "api-keys" && (
               <button onClick={() => setShowKeyDialog(true)} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-medium hover:from-indigo-600 hover:to-purple-700 transition-all shadow-lg shadow-indigo-500/20">
                 <Key className="w-4 h-4" /> Generate API Key
               </button>
@@ -284,7 +291,20 @@ export default function ProjectDetailPage() {
             onClick={() => setActiveTab("overview")}
             className={`pb-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "overview" ? "border-indigo-500 text-white" : "border-transparent text-slate-500 hover:text-slate-300"}`}
           >
-            Overview & Keys
+            Overview
+          </button>
+          <button 
+            onClick={() => setActiveTab("trends")}
+            className={`pb-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "trends" ? "border-indigo-500 text-white" : "border-transparent text-slate-500 hover:text-slate-300"}`}
+          >
+            Automation Trends
+          </button>
+          <button 
+            onClick={() => setActiveTab("api-keys")}
+            className={`pb-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "api-keys" ? "border-indigo-500 text-white" : "border-transparent text-slate-500 hover:text-slate-300"}`}
+          >
+            API Keys
+            <span className="ml-2 bg-slate-800 text-slate-400 py-0.5 px-2 rounded-full text-[10px]">{project.apiKeys?.length || 0}</span>
           </button>
           {canManageProject && (
             <button 
@@ -301,57 +321,46 @@ export default function ProjectDetailPage() {
           {activeTab === "overview" && (
             <div className="space-y-6 fade-in-up">
               {/* Project Stats */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="glass rounded-xl p-4">
-                  <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Total Runs</p>
-                  <p className="text-2xl font-bold text-white mt-1">{project._count?.testRuns || 0}</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8 fade-in-up">
+                <StatCard label="Total Runs" value={project._count?.testRuns || 0} icon={<Layers className="w-4 h-4 text-indigo-400" />} color="indigo" />
+                
+                {/* Orbital Gauge: Success Rate */}
+                <div className="lg:col-span-1 glass rounded-[2rem] p-6 relative overflow-hidden border-t-4 border-emerald-500/80 shadow-[0_-12px_20px_-8px_rgba(52,211,153,0.25)] group hover:-translate-y-1 transition-all duration-500">
+                  <div className="flex flex-col items-center justify-center h-full text-center relative z-10">
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Success Rate</span>
+                    <div className="relative w-28 h-28 flex items-center justify-center">
+                      <svg className="w-full h-full -rotate-90 transform">
+                        <circle cx="56" cy="56" r="50" fill="transparent" stroke="currentColor" strokeWidth="8" className="text-slate-800/40" />
+                        <circle cx="56" cy="56" r="50" fill="transparent" stroke="currentColor" strokeWidth="8" strokeDasharray={314.159} strokeDashoffset={314.159 - (314.159 * rate) / 100} strokeLinecap="round" className="text-emerald-500 transition-all duration-1000 ease-out" />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-3xl font-black text-white tracking-tighter">{rate}<span className="text-xs text-emerald-500/60 ml-0.5">%</span></span>
+                      </div>
+                      <div className="absolute inset-0 rounded-full bg-emerald-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                    </div>
+                  </div>
                 </div>
-                <div className="glass rounded-xl p-4">
-                  <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Success Rate</p>
-                  <p className={`text-2xl font-bold mt-1 ${rate >= 75 ? "text-emerald-400" : "text-rose-400"}`}>{rate}%</p>
+
+                <StatCard label="Passed" value={passed} icon={<CheckCircle2 className="w-4 h-4 text-emerald-400" />} color="emerald" />
+                <StatCard label="Failed" value={failed} icon={<AlertTriangle className="w-4 h-4 text-rose-400" />} color="rose" />
+                <StatCard label="Avg Duration" value={`${avgDuration}s`} icon={<Clock className="w-4 h-4 text-sky-400" />} color="sky" />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="glass rounded-xl p-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold mb-1">Active API Keys</p>
+                    <p className="text-2xl font-bold text-white">{project.apiKeys?.length || 0}</p>
+                  </div>
+                  <Key className="w-8 h-8 text-slate-700/50" />
                 </div>
-                <div className="glass rounded-xl p-4">
-                  <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Active API Keys</p>
-                  <p className="text-2xl font-bold text-white mt-1">{project.apiKeys?.length || 0}</p>
-                </div>
-                <div className="glass rounded-xl p-4">
-                  <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Description</p>
-                  <p className="text-sm text-slate-300 mt-1 line-clamp-2">{project.description || "—"}</p>
+                <div className="glass rounded-xl p-4 flex flex-col justify-center">
+                  <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold mb-1">Description</p>
+                  <p className="text-sm text-slate-300 line-clamp-2">{project.description || "—"}</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* API Keys */}
-                <div>
-                  <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-                    <Key className="w-4 h-4 text-indigo-400" /> API Keys
-                  </h2>
-                  {project.apiKeys?.length === 0 ? (
-                    <div className="glass rounded-xl p-8 text-center">
-                      <Key className="w-8 h-8 text-slate-700 mx-auto mb-3" />
-                      <p className="text-sm text-slate-500">No active API keys.</p>
-                      {canManageProject && <p className="text-xs text-slate-600 mt-1">Generate one to connect your test framework.</p>}
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {project.apiKeys?.map((key: ProjectApiKey) => (
-                        <div key={key.id} className="glass rounded-xl p-4 flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-white">{key.label}</p>
-                            <p className="text-xs text-slate-500 font-mono mt-0.5">{key.prefix}••••••••••••</p>
-                            <p className="text-[11px] text-slate-600 mt-1">Created {relativeTime(key.createdAt)}</p>
-                          </div>
-                          {canManageProject && (
-                            <button onClick={() => revokeKey(key.id)} className="p-2 rounded-lg text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 transition-colors" title="Revoke key">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
+              <div className="grid grid-cols-1 gap-6">
                 {/* Recent Runs */}
                 <div>
                   <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
@@ -381,6 +390,72 @@ export default function ProjectDetailPage() {
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "trends" && (
+            <div className="space-y-6 fade-in-up">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="glass rounded-[2rem] p-8 border-white/[0.03]">
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-6">Test Case stability Trend</p>
+                  <div className="h-64">
+                    <TestCaseTrendChart projectId={project.id} />
+                  </div>
+                </div>
+                <div className="glass rounded-[2rem] p-8 border-white/[0.03]">
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-6">Performance Velocity</p>
+                  <div className="h-64">
+                    <DurationTrendChart projectId={project.id} />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="glass rounded-[2rem] p-8 border-white/[0.03] lg:w-2/3 mx-auto">
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-6 text-center">
+                  Testing Distribution
+                </p>
+                <div className="w-full flex justify-center">
+                  <TestingPyramid
+                    unit={runs.filter((r) => r.type === 'unit').length || 150}
+                    integration={runs.filter((r) => r.type === 'integration').length || 60}
+                    e2e={runs.filter((r) => r.type === 'e2e').length || 20}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "api-keys" && (
+            <div className="space-y-6 fade-in-up md:w-2/3 lg:w-1/2">
+              <div>
+                <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
+                  <Key className="w-4 h-4 text-indigo-400" /> API Keys
+                </h2>
+                {project.apiKeys?.length === 0 ? (
+                  <div className="glass rounded-xl p-8 text-center">
+                    <Key className="w-8 h-8 text-slate-700 mx-auto mb-3" />
+                    <p className="text-sm text-slate-500">No active API keys.</p>
+                    {canManageProject && <p className="text-xs text-slate-600 mt-1">Generate one to connect your test framework.</p>}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {project.apiKeys?.map((key: ProjectApiKey) => (
+                      <div key={key.id} className="glass rounded-xl p-4 flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-white">{key.label}</p>
+                          <p className="text-xs text-slate-500 font-mono mt-0.5">{key.prefix}••••••••••••</p>
+                          <p className="text-[11px] text-slate-600 mt-1">Created {relativeTime(key.createdAt)}</p>
+                        </div>
+                        {canManageProject && (
+                          <button onClick={() => revokeKey(key.id)} className="p-2 rounded-lg text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 transition-colors" title="Revoke key">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}

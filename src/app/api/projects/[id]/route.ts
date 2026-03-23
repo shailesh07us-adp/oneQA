@@ -13,7 +13,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       include: {
         _count: { select: { testRuns: true } },
         apiKeys: { where: { revoked: false } },
-        testRuns: { orderBy: { startTime: "desc" }, take: 10 },
+        testRuns: { orderBy: { startTime: "desc" }, take: 100 },
         members: {
           include: {
             user: { select: { id: true, name: true, email: true } },

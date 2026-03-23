@@ -8,6 +8,7 @@ export async function GET(req: Request) {
     const search = searchParams.get('search') || '';
     const status = searchParams.get('status') || 'all';
     const env = searchParams.get('env') || 'all';
+    const project = searchParams.get('project') || 'all';
     const sortBy = searchParams.get('sortBy') || 'startTime';
     const sortOrder = (searchParams.get('sortOrder') || 'desc') as 'asc' | 'desc';
     const runId = searchParams.get('runId');
@@ -28,6 +29,9 @@ export async function GET(req: Request) {
     }
     if (env !== 'all') {
       where.env = env;
+    }
+    if (project !== 'all') {
+      where.project = project;
     }
 
     const orderBy: Prisma.TestRunOrderByWithRelationInput = {};
@@ -56,7 +60,11 @@ export async function GET(req: Request) {
 
     // Get all distinct environments for filter dropdown
     const allRuns = await prisma.testRun.findMany({ select: { env: true }, distinct: ['env'] });
-    const environments = allRuns.map((r: { env: string }) => r.env);
+    const environments = allRuns.map((r: { env: string }) => r.env).filter(Boolean);
+
+    // Get all distinct projects for filter dropdown
+    const allProjects = await prisma.testRun.findMany({ select: { project: true }, distinct: ['project'] });
+    const projects = allProjects.map((r: { project: string }) => r.project).filter(Boolean);
 
     return NextResponse.json({
       runs,
@@ -64,6 +72,7 @@ export async function GET(req: Request) {
       page,
       totalPages: Math.ceil(total / limit),
       environments,
+      projects,
     });
   } catch (error) {
     console.error('Error fetching runs:', error);
