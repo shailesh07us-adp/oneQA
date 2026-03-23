@@ -122,6 +122,7 @@ export interface FailureCluster {
     stack?: string;
     runId: string;
     env: string;
+    project: string;
   }[];
   envList?: string[];
 }
@@ -132,7 +133,8 @@ export function clusterFailures(runs: Run[]) {
   const allFailedTests: (Test & { 
     suiteTitle: string; 
     runId: string; 
-    env: string; 
+    env: string;
+    project: string;
     startTime: string | Date; 
   })[] = [];
 
@@ -148,6 +150,7 @@ export function clusterFailures(runs: Run[]) {
             suiteTitle: suite.title,
             runId: run.id,
             env: run.env,
+            project: run.project,
             startTime: run.startTime,
             // Provide a descriptive error if none exists for non-passing tests
             error: test.error || (isNonPassingInFailedRun ? `Test ${test.status} in a failed run` : "Unknown Error")
@@ -185,7 +188,8 @@ export function clusterFailures(runs: Run[]) {
       error: test.error,
       stack: test.stack,
       runId: test.runId,
-      env: test.env
+      env: test.env,
+      project: test.project
     });
   });
 

@@ -116,12 +116,15 @@ model TestCase {
 
 model FailurePattern {
   id              String   @id @default(uuid())
-  fingerprint     String   @unique
+  fingerprint     String
+  project         String   @default("default")
   resolvedStatus  String   // e.g., 'fixed', 'known-issue', 'flaky'
   comment         String?
   occurrenceCount Int      @default(1)
   lastSeen        DateTime @default(now())
   createdAt       DateTime @default(now())
+
+  @@unique([fingerprint, project])
 }
 
 model FeatureRequest {

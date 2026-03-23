@@ -27,7 +27,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="flex flex-col items-center gap-3 animate-in fade-in zoom-in duration-300 delay-150">
               <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
-              <span className="text-xs font-medium text-indigo-400/80 tracking-widest uppercase animate-pulse">Loading Content</span>
+              <span className="text-xs font-medium text-indigo-400/80 tracking-widest uppercase animate-pulse">Loading</span>
             </div>
           </div>
         )}

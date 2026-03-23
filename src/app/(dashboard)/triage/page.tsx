@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { 
   AlertTriangle, 
   Terminal, 
@@ -25,7 +25,8 @@ import {
   Settings2,
   Trash2,
   AlertOctagon,
-  X
+  X,
+  ChevronDown
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -60,6 +61,7 @@ interface TriageCluster {
 interface TriagePattern {
   id: string;
   fingerprint: string;
+  project: string;
   resolvedStatus: string;
   comment?: string;
   occurrenceCount: number;
@@ -76,6 +78,7 @@ export default function TriagePage() {
 
 function TriageContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const runId = searchParams.get('runId');
   const [clusters, setClusters] = useState<TriageCluster[]>([]);
   const [selectedCluster, setSelectedCluster] = useState<TriageCluster | null>(null);
@@ -86,7 +89,10 @@ function TriageContent() {
   const [showKBManager, setShowKBManager] = useState(false);
   const [conflict, setConflict] = useState<{ predicted: string, incoming: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedProject, setSelectedProject] = useState<string>("All Projects");
+  const [selectedEnv, setSelectedEnv] = useState<string>("All Environments");
   const [copied, setCopied] = useState(false);
+  const [availableRuns, setAvailableRuns] = useState<{id: string, project: string, startTime: string}[]>([]);
 
   useEffect(() => {
     async function loadExpertTriage() {
@@ -108,7 +114,7 @@ function TriageContent() {
         
         // Auto-match patterns
         activeClusters.forEach(cluster => {
-          const match = patternsData.patterns?.find((p: TriagePattern) => p.fingerprint === cluster.fingerprint);
+          const match = patternsData.patterns?.find((p: TriagePattern) => p.fingerprint === cluster.fingerprint && p.project === cluster.failures[0].project);
           if (match) {
             cluster.historicalMatch = match;
             cluster.predictedStatus = match.resolvedStatus;
@@ -129,6 +135,21 @@ function TriageContent() {
     
     loadExpertTriage();
   }, [runId]);
+
+  useEffect(() => {
+    async function fetchAvailableRuns() {
+      try {
+        const res = await fetch("/api/runs?limit=30&status=failed");
+        if (res.ok) {
+          const data = await res.json();
+          setAvailableRuns(data.runs || []);
+        }
+      } catch (e) {
+        console.error("Failed to fetch recent runs", e);
+      }
+    }
+    fetchAvailableRuns();
+  }, []);
 
 
   const handleTriageAll = async (status: string, override = false) => {
@@ -152,6 +173,7 @@ function TriageContent() {
           testIds, 
           status,
           fingerprint: selectedCluster.fingerprint,
+          project: selectedCluster.failures[0].project,
           error: selectedCluster.failures[0].error
         })
       });
@@ -173,7 +195,49 @@ function TriageContent() {
     }
   };
 
-  const filteredClusters = clusters.filter(cluster => 
+  useEffect(() => {
+    setSelectedEnv("All Environments");
+  }, [selectedProject]);
+
+  const availableProjects = Array.from(new Set(clusters.flatMap(c => c.failures.map((f: TriageFailure) => f.project)))).filter(Boolean).sort();
+  
+  const availableEnvs = Array.from(new Set(
+      clusters.flatMap(c => c.failures)
+      .filter(f => selectedProject === "All Projects" || f.project === selectedProject)
+      .map(f => f.env)
+  )).filter(Boolean).sort();
+
+  const processedClusters = clusters.map(cluster => {
+    let currFailures = cluster.failures;
+    if (selectedProject !== "All Projects") {
+        currFailures = currFailures.filter((f: TriageFailure) => f.project === selectedProject);
+    }
+    if (selectedEnv !== "All Environments") {
+        currFailures = currFailures.filter((f: TriageFailure) => f.env === selectedEnv);
+    }
+
+    if (currFailures.length === 0) return null;
+
+    const envs = new Set(currFailures.map(f => f.env));
+    let severity = cluster.severity;
+    if (envs.has('PRODUCTION')) {
+        severity = 'CRITICAL';
+    } else if (envs.size > 1) {
+        severity = 'HIGH';
+    } else {
+        severity = 'MEDIUM';
+    }
+
+    return {
+        ...cluster,
+        failures: currFailures,
+        count: currFailures.length,
+        severity,
+        envList: Array.from(envs)
+    };
+  }).filter(Boolean) as TriageCluster[];
+
+  const filteredClusters = processedClusters.filter(cluster => 
     cluster.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     cluster.failures.some((f: TriageFailure) => f.title.toLowerCase().includes(searchQuery.toLowerCase()))
   );
@@ -285,25 +349,65 @@ function TriageContent() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+           <div className="flex items-center gap-4">
+             <div className="flex items-center gap-2">
+                <div className="relative group">
+                  <select 
+                     value={runId || "latest"} 
+                     onChange={(e) => {
+                       const val = e.target.value;
+                       if (val === "latest") {
+                         router.push("/triage");
+                       } else {
+                         router.push(`/triage?runId=${val}`);
+                       }
+                     }}
+                     className="bg-slate-900 border border-white/5 text-slate-300 text-[11px] font-bold uppercase tracking-widest rounded-lg pl-3 pr-8 py-2 outline-none focus:border-indigo-500/50 appearance-none min-w-[200px] cursor-pointer"
+                  >
+                     <option value="latest">Latest Failed Runs</option>
+                     {availableRuns.map(r => (
+                        <option key={r.id} value={r.id}>
+                          {r.project} - {new Date(r.startTime).toLocaleString(undefined, {month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'})}
+                        </option>
+                     ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none group-focus-within:text-indigo-400" />
+                </div>
+                <div className="relative group">
+                  <select 
+                     value={selectedProject} 
+                     onChange={(e) => setSelectedProject(e.target.value)}
+                     className="bg-slate-900 border border-white/5 text-slate-300 text-[11px] font-bold uppercase tracking-widest rounded-lg pl-3 pr-8 py-2 outline-none focus:border-indigo-500/50 appearance-none min-w-[140px] cursor-pointer"
+                  >
+                     <option value="All Projects">All Projects</option>
+                     {availableProjects.map(p => (
+                        <option key={p} value={p}>{p}</option>
+                     ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none group-focus-within:text-indigo-400" />
+                </div>
+                <div className="relative group">
+                  <select 
+                     value={selectedEnv} 
+                     onChange={(e) => setSelectedEnv(e.target.value)}
+                     className="bg-slate-900 border border-white/5 text-slate-300 text-[11px] font-bold uppercase tracking-widest rounded-lg pl-3 pr-8 py-2 outline-none focus:border-indigo-500/50 appearance-none min-w-[140px] cursor-pointer"
+                  >
+                     <option value="All Environments">All Env</option>
+                     {availableEnvs.map(e => (
+                        <option key={e} value={e}>{e}</option>
+                     ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none group-focus-within:text-indigo-400" />
+                </div>
+             </div>
              <button 
                onClick={() => setShowKBManager(true)}
-               className="p-2 rounded-lg bg-slate-900 border border-white/5 text-slate-400 hover:text-white transition-all flex items-center gap-2 group"
+               className="p-2 rounded-lg bg-slate-900 border border-white/5 text-slate-400 hover:text-white transition-all flex items-center gap-2 group ml-2"
                title="Manage Learned Patterns"
              >
                <Settings2 className="w-4 h-4 group-hover:rotate-90 transition-transform duration-500" />
                <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline">Knowledge Oracle</span>
              </button>
-             <div className="flex items-center gap-4 px-4 py-1.5 rounded-full bg-slate-900 border border-white/5">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-rose-500" />
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">Prod</span>
-                </div>
-                <div className="flex items-center gap-2 border-l border-white/10 pl-4">
-                  <div className="w-2 h-2 rounded-full bg-amber-500" />
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">Staging</span>
-                </div>
-             </div>
           </div>
         </header>
 
@@ -600,13 +704,13 @@ function TriageContent() {
             </div>
 
             <div className="flex-1 overflow-y-auto p-8 space-y-4">
-              {patterns.length === 0 ? (
+              {patterns.filter(p => p.project === selectedProject || selectedProject === "All Projects").length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-64 text-center">
                   <Sparkles className="w-12 h-12 text-slate-800 mb-4" />
                   <p className="text-slate-600 font-bold uppercase tracking-widest text-xs">Knowledge Base is Empty</p>
                 </div>
               ) : (
-                patterns.map((pattern: TriagePattern) => (
+                patterns.filter(p => p.project === selectedProject || selectedProject === "All Projects").map((pattern: TriagePattern) => (
                   <div key={pattern.id} className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:border-indigo-500/30 transition-all group relative">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
@@ -614,6 +718,9 @@ function TriageContent() {
                           {pattern.resolvedStatus}
                         </span>
                         <span className="text-[10px] font-mono text-slate-600">Fingerprint: {pattern.fingerprint.substring(0, 12)}...</span>
+                        {selectedProject === "All Projects" && (
+                          <span className="text-[9px] font-bold text-slate-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">{pattern.project}</span>
+                        )}
                       </div>
                       <button 
                         onClick={() => handleDeletePattern(pattern.id)}

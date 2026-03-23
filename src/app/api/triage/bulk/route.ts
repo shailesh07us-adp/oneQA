@@ -4,10 +4,14 @@ import { getFingerprint } from '@/lib/intelligence';
 
 export async function POST(req: Request) {
   try {
-    const { testIds, status, comment, fingerprint, error } = await req.json();
+    const { testIds, status, comment, fingerprint, error, project } = await req.json();
 
     if (!testIds || !Array.isArray(testIds)) {
       return NextResponse.json({ error: 'testIds must be an array' }, { status: 400 });
+    }
+    
+    if (!project) {
+      return NextResponse.json({ error: 'project is required' }, { status: 400 });
     }
 
     // Update statuses for this specific instance
@@ -20,7 +24,7 @@ export async function POST(req: Request) {
     if (fingerprint || error) {
       const activeFingerprint = fingerprint || getFingerprint(error);
       await prisma.failurePattern.upsert({
-        where: { fingerprint: activeFingerprint },
+        where: { fingerprint_project: { fingerprint: activeFingerprint, project } },
         update: {
           resolvedStatus: status,
           lastSeen: new Date(),
@@ -28,6 +32,7 @@ export async function POST(req: Request) {
         },
         create: {
           fingerprint: activeFingerprint,
+          project,
           resolvedStatus: status,
           comment: comment || 'Automated triage learning'
         }
