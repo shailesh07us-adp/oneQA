@@ -58,13 +58,28 @@ export async function GET(req: Request) {
       prisma.testRun.count({ where }),
     ]);
 
-    // Get all distinct environments for filter dropdown
-    const allRuns = await prisma.testRun.findMany({ select: { env: true }, distinct: ['env'] });
-    const environments = allRuns.map((r: { env: string }) => r.env).filter(Boolean);
+    // Get all distinct environments for filter dropdown (filtered by project if specified)
+    const envWhere: Prisma.TestRunWhereInput = {};
+    if (project !== 'all') {
+      envWhere.project = project;
+    }
+    const allEnvRuns = await prisma.testRun.findMany({ where: envWhere, select: { env: true }, distinct: ['env'] });
+    const envMap = new Map<string, string>();
+    allEnvRuns.forEach((r: { env: string }) => {
+      if (r.env) {
+        const key = r.env.trim().toUpperCase();
+        if (!envMap.has(key)) envMap.set(key, key);
+      }
+    });
+    const environments = Array.from(envMap.values()).sort();
 
-    // Get all distinct projects for filter dropdown
-    const allProjects = await prisma.testRun.findMany({ select: { project: true }, distinct: ['project'] });
-    const projects = allProjects.map((r: { project: string }) => r.project).filter(Boolean);
+    // Get all distinct projects for filter dropdown from the Project table
+    const allProjects = await prisma.project.findMany({
+      where: { archived: false },
+      select: { name: true },
+      orderBy: { name: 'asc' },
+    });
+    const projects = allProjects.map((p: { name: string }) => p.name).filter(Boolean);
 
     return NextResponse.json({
       runs,

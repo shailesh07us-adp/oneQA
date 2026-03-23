@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { 
   AlertTriangle, 
   Terminal, 
@@ -78,7 +78,6 @@ export default function TriagePage() {
 
 function TriageContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const runId = searchParams.get('runId');
   const [clusters, setClusters] = useState<TriageCluster[]>([]);
   const [selectedCluster, setSelectedCluster] = useState<TriageCluster | null>(null);
@@ -91,14 +90,74 @@ function TriageContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProject, setSelectedProject] = useState<string>("All Projects");
   const [selectedEnv, setSelectedEnv] = useState<string>("All Environments");
+  const [selectedRunId, setSelectedRunId] = useState<string>(runId || "");
   const [copied, setCopied] = useState(false);
-  const [availableRuns, setAvailableRuns] = useState<{id: string, project: string, startTime: string}[]>([]);
+  const [allProjects, setAllProjects] = useState<string[]>([]);
+  const [allEnvs, setAllEnvs] = useState<string[]>([]);
+  const [availableRuns, setAvailableRuns] = useState<{id: string, project: string, env: string, startTime: string, status: string}[]>([]);
 
+  // 1. Fetch all distinct projects on mount
+  useEffect(() => {
+    async function fetchProjects() {
+      try {
+        const res = await fetch("/api/runs?limit=1");
+        if (res.ok) {
+          const data = await res.json();
+          setAllProjects((data.projects || []).sort());
+        }
+      } catch (e) {
+        console.error("Failed to fetch projects", e);
+      }
+    }
+    fetchProjects();
+  }, []);
+
+  // 2. Fetch environments filtered by selected project
+  useEffect(() => {
+    setSelectedEnv("All Environments");
+    setSelectedRunId("");
+    async function fetchEnvs() {
+      try {
+        const projectParam = selectedProject !== "All Projects" ? `&project=${encodeURIComponent(selectedProject)}` : "";
+        const res = await fetch(`/api/runs?limit=1${projectParam}`);
+        if (res.ok) {
+          const data = await res.json();
+          setAllEnvs((data.environments || []).sort());
+        }
+      } catch (e) {
+        console.error("Failed to fetch environments", e);
+      }
+    }
+    fetchEnvs();
+  }, [selectedProject]);
+
+  // 3. Fetch runs filtered by selected project + environment
+  useEffect(() => {
+    setSelectedRunId("");
+    async function fetchRuns() {
+      try {
+        let url = "/api/runs?limit=50&status=failed";
+        if (selectedProject !== "All Projects") url += `&project=${encodeURIComponent(selectedProject)}`;
+        if (selectedEnv !== "All Environments") url += `&env=${encodeURIComponent(selectedEnv)}`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          setAvailableRuns(data.runs || []);
+        }
+      } catch (e) {
+        console.error("Failed to fetch runs", e);
+      }
+    }
+    fetchRuns();
+  }, [selectedProject, selectedEnv]);
+
+  // 4. Load triage data based on the selected run
   useEffect(() => {
     async function loadExpertTriage() {
+      setLoading(true);
       try {
-        const runsUrl = runId 
-          ? `/api/runs?runId=${runId}` 
+        const runsUrl = selectedRunId
+          ? `/api/runs?runId=${selectedRunId}` 
           : "/api/runs?limit=100&status=failed";
 
         const [runsRes, patternsRes] = await Promise.all([
@@ -125,6 +184,9 @@ function TriageContent() {
         if (activeClusters.length > 0) {
           setSelectedCluster(activeClusters[0]);
           setSelectedFailure(activeClusters[0].failures[0] as unknown as TriageFailure);
+        } else {
+          setSelectedCluster(null);
+          setSelectedFailure(null);
         }
       } catch (err) {
         console.error("Expert triage load failed", err);
@@ -134,22 +196,7 @@ function TriageContent() {
     }
     
     loadExpertTriage();
-  }, [runId]);
-
-  useEffect(() => {
-    async function fetchAvailableRuns() {
-      try {
-        const res = await fetch("/api/runs?limit=30&status=failed");
-        if (res.ok) {
-          const data = await res.json();
-          setAvailableRuns(data.runs || []);
-        }
-      } catch (e) {
-        console.error("Failed to fetch recent runs", e);
-      }
-    }
-    fetchAvailableRuns();
-  }, []);
+  }, [selectedRunId]);
 
 
   const handleTriageAll = async (status: string, override = false) => {
@@ -195,17 +242,8 @@ function TriageContent() {
     }
   };
 
-  useEffect(() => {
-    setSelectedEnv("All Environments");
-  }, [selectedProject]);
-
-  const availableProjects = Array.from(new Set(clusters.flatMap(c => c.failures.map((f: TriageFailure) => f.project)))).filter(Boolean).sort();
-  
-  const availableEnvs = Array.from(new Set(
-      clusters.flatMap(c => c.failures)
-      .filter(f => selectedProject === "All Projects" || f.project === selectedProject)
-      .map(f => f.env)
-  )).filter(Boolean).sort();
+  const availableProjects = allProjects;
+  const availableEnvs = allEnvs;
 
   const processedClusters = clusters.map(cluster => {
     let currFailures = cluster.failures;
@@ -241,6 +279,17 @@ function TriageContent() {
     cluster.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     cluster.failures.some((f: TriageFailure) => f.title.toLowerCase().includes(searchQuery.toLowerCase()))
   );
+
+  useEffect(() => {
+    if (filteredClusters.length === 0) {
+      setSelectedCluster(null);
+      setSelectedFailure(null);
+    } else if (!selectedCluster || !filteredClusters.find(c => c.id === selectedCluster.id)) {
+      setSelectedCluster(filteredClusters[0]);
+      setSelectedFailure(filteredClusters[0].failures[0]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredClusters.length, filteredClusters.map(c => c.id).join(',')]);
 
   const handleArchiveAll = () => {
     setClusters([]);
@@ -353,28 +402,6 @@ function TriageContent() {
              <div className="flex items-center gap-2">
                 <div className="relative group">
                   <select 
-                     value={runId || "latest"} 
-                     onChange={(e) => {
-                       const val = e.target.value;
-                       if (val === "latest") {
-                         router.push("/triage");
-                       } else {
-                         router.push(`/triage?runId=${val}`);
-                       }
-                     }}
-                     className="bg-slate-900 border border-white/5 text-slate-300 text-[11px] font-bold uppercase tracking-widest rounded-lg pl-3 pr-8 py-2 outline-none focus:border-indigo-500/50 appearance-none min-w-[200px] cursor-pointer"
-                  >
-                     <option value="latest">Latest Failed Runs</option>
-                     {availableRuns.map(r => (
-                        <option key={r.id} value={r.id}>
-                          {r.project} - {new Date(r.startTime).toLocaleString(undefined, {month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'})}
-                        </option>
-                     ))}
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none group-focus-within:text-indigo-400" />
-                </div>
-                <div className="relative group">
-                  <select 
                      value={selectedProject} 
                      onChange={(e) => setSelectedProject(e.target.value)}
                      className="bg-slate-900 border border-white/5 text-slate-300 text-[11px] font-bold uppercase tracking-widest rounded-lg pl-3 pr-8 py-2 outline-none focus:border-indigo-500/50 appearance-none min-w-[140px] cursor-pointer"
@@ -395,6 +422,21 @@ function TriageContent() {
                      <option value="All Environments">All Env</option>
                      {availableEnvs.map(e => (
                         <option key={e} value={e}>{e}</option>
+                     ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none group-focus-within:text-indigo-400" />
+                </div>
+                <div className="relative group">
+                  <select 
+                     value={selectedRunId} 
+                     onChange={(e) => setSelectedRunId(e.target.value)}
+                     className="bg-slate-900 border border-white/5 text-slate-300 text-[11px] font-bold uppercase tracking-widest rounded-lg pl-3 pr-8 py-2 outline-none focus:border-indigo-500/50 appearance-none min-w-[200px] cursor-pointer"
+                  >
+                     <option value="">All Failed Runs</option>
+                     {availableRuns.map(r => (
+                        <option key={r.id} value={r.id}>
+                          {r.project} — {new Date(r.startTime).toLocaleString(undefined, {month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'})}
+                        </option>
                      ))}
                   </select>
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none group-focus-within:text-indigo-400" />
@@ -477,6 +519,15 @@ function TriageContent() {
 
           {/* Right: Expert Workspace */}
           <div className="flex-1 overflow-y-auto p-10 bg-[#0a0e1a] relative">
+            {!selectedCluster ? (
+              <div className="flex flex-col items-center justify-center h-full text-center">
+                <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 mb-6">
+                  <Search className="w-10 h-10 text-slate-700" />
+                </div>
+                <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">No Failures Found</p>
+                <p className="text-xs text-slate-600 max-w-xs">Adjust the project, environment, or run filters to view failure clusters.</p>
+              </div>
+            ) : (
             <div className="max-w-5xl mx-auto space-y-10 pb-20">
               
               {/* Workspace Header */}
@@ -644,6 +695,7 @@ function TriageContent() {
               </div>
 
             </div>
+            )}
           </div>
         </div>
 
