@@ -92,7 +92,7 @@ export default async function PerformancePage() {
         </header>
 
         <div className="p-8 space-y-6 max-w-7xl mx-auto w-full">
-          {/* Duration KPIs */}
+          {/* Automation KPIs */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 fade-in-up">
             <DurationCard label="Average" value={`${avgDuration}s`} icon={<Clock className="w-4 h-4" />} color="sky" />
             <DurationCard label="Median" value={`${medianDuration}s`} icon={<Timer className="w-4 h-4" />} color="amber" />

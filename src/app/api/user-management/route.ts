@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import { requireGlobalRole, getSessionUser } from "@/lib/rbac";
 import { Prisma } from "@prisma/client";
 
-// GET /api/users — List all users (Any authenticated user can list to add members)
+// GET /api/user-management — List all users (Any authenticated user can list to add members)
 export async function GET() {
   const sessionUser = await getSessionUser();
   if (!sessionUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

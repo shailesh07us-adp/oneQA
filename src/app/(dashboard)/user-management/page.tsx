@@ -59,7 +59,7 @@ interface PendingUser {
   createdAt: string;
 }
 
-export default function UsersPage() {
+export default function UserManagementPage() {
   const { data: session } = useSession();
   const [users, setUsers] = useState<UserListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,9 +81,9 @@ export default function UsersPage() {
   const fetchUsersAndProjects = async () => {
     setLoading(true);
     const [usersRes, projectsRes, pendingRes] = await Promise.all([
-      fetch("/api/users"),
+      fetch("/api/user-management"),
       fetch("/api/projects"),
-      fetch("/api/admin/users/approve")
+      fetch("/api/admin/user-management/approve")
     ]);
     if (usersRes.ok) setUsers(await usersRes.json());
     if (projectsRes.ok) setProjects(await projectsRes.json());
@@ -96,7 +96,7 @@ export default function UsersPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setCreating(true);
-    const res = await fetch("/api/users", {
+    const res = await fetch("/api/user-management", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
@@ -117,10 +117,10 @@ export default function UsersPage() {
   };
 
   const handleRoleChange = async (userId: string, newRole: string) => {
-    const res = await fetch(`/api/users/${userId}`, {
+    const res = await fetch(`/api/user-management/${userId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ role: newRole }),
+      body: JSON.stringify({ globalRole: newRole }),
     });
     if (res.ok) {
       toast.success(`Role updated successfully`);
@@ -136,7 +136,7 @@ export default function UsersPage() {
     console.log("UsersPage: Starting deletion for user", userToDelete.id);
     setIsDeleting(true);
     try {
-      const res = await fetch(`/api/users/${userToDelete.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/user-management/${userToDelete.id}`, { method: "DELETE" });
       console.log("UsersPage: Deletion response status", res.status);
       if (res.ok) {
         toast.success(`User ${userToDelete.name || userToDelete.email} deleted successfully`);
@@ -159,7 +159,7 @@ export default function UsersPage() {
   const handleApprovalAction = async (userId: string, action: "APPROVE" | "REJECT") => {
     setProcessingApproval(userId);
     try {
-      const res = await fetch("/api/admin/users/approve", {
+      const res = await fetch("/api/admin/user-management/approve", {
         method: "POST",
         body: JSON.stringify({ userId, action }),
         headers: { "Content-Type": "application/json" },

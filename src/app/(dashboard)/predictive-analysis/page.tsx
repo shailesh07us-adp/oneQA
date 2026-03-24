@@ -53,7 +53,7 @@ export default function PredictiveAnalysisPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/ado")
+    fetch("/api/predictive-analysis")
       .then((r) => r.json())
       .then((d) => {
         setAdoData(d);
@@ -142,7 +142,7 @@ export default function PredictiveAnalysisPage() {
                 />
               </div>
 
-              {/* Row 3: Severity KPIs — single horizontal row */}
+              {/* Row 3: Automation KPIs — single horizontal row */}
               <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
                 <SeverityCard label="P1 Critical" value={adoData.defects.p1} color="rose" />
                 <SeverityCard label="P2 High" value={adoData.defects.p2} color="amber" />

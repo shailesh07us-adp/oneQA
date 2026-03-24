@@ -6,9 +6,9 @@ export async function GET() {
     const data = await getAdoDashboardData();
     return NextResponse.json(data);
   } catch (error) {
-    console.error("ADO API error:", error);
+    console.error("Predictive Analysis API error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch ADO data" },
+      { error: "Failed to fetch Predictive Analysis data" },
       { status: 500 }
     );
   }

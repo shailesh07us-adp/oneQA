@@ -29,7 +29,7 @@ export default function CommandCenterPage() {
   const [failureBreakdown, setFailureBreakdown] = useState<FailureBreakdown | null>(null);
 
   useEffect(() => {
-    fetch("/api/runs?limit=200")
+    fetch("/api/test-runs?limit=200")
       .then(res => res.json())
       .then(data => {
         const allRuns = (data.runs || []) as Run[];

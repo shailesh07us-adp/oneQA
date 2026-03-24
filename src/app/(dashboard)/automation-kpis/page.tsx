@@ -138,14 +138,14 @@ const chartTooltipStyle = {
   itemStyle: { color: "#e2e8f0", fontWeight: 700 },
 };
 
-export default function KpisPage() {
+export default function AutomationKpisPage() {
   const [data, setData] = useState<KpiData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState("all");
 
   useEffect(() => {
     setLoading(true);
-    fetch(`/api/kpis?project=${selectedProject}`)
+    fetch(`/api/automation-kpis?project=${selectedProject}`)
       .then((r) => r.json())
       .then((d) => { setData(d); setLoading(false); })
       .catch(() => setLoading(false));

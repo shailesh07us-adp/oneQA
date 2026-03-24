@@ -30,7 +30,7 @@ export default function ApprovalsPage() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch("/api/admin/users/approve");
+      const res = await fetch("/api/admin/user-management/approve");
       if (res.ok) {
         const data = await res.json();
         setUsers(data);
@@ -45,7 +45,7 @@ export default function ApprovalsPage() {
   const handleAction = async (userId: string, action: "APPROVE" | "REJECT") => {
     setProcessing(userId);
     try {
-      const res = await fetch("/api/admin/users/approve", {
+      const res = await fetch("/api/admin/user-management/approve", {
         method: "POST",
         body: JSON.stringify({ userId, action }),
         headers: { "Content-Type": "application/json" },

@@ -222,7 +222,7 @@ export async function GET(req: Request) {
       environmentComparison,
     });
   } catch (error) {
-    console.error('Error computing KPIs:', error);
-    return NextResponse.json({ error: 'Failed to compute KPIs' }, { status: 500 });
+    console.error('Error computing Automation KPIs:', error);
+    return NextResponse.json({ error: 'Failed to compute Automation KPIs' }, { status: 500 });
   }
 }

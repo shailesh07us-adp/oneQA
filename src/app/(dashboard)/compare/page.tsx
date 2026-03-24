@@ -123,7 +123,7 @@ export default function CompareRunsPage() {
 
   // Fetch available runs on mount
   useEffect(() => {
-    fetch("/api/runs?limit=50&sortBy=startTime&sortOrder=desc")
+    fetch("/api/test-runs?limit=50&sortBy=startTime&sortOrder=desc")
       .then((r) => r.json())
       .then((data) => {
         setRuns(
@@ -150,7 +150,7 @@ export default function CompareRunsPage() {
     setLoading(true);
     setResult(null);
     try {
-      const res = await fetch(`/api/runs/compare?runA=${runAId}&runB=${runBId}`);
+      const res = await fetch(`/api/test-runs/compare?runA=${runAId}&runB=${runBId}`);
       if (!res.ok) {
         const err = await res.json();
         setError(err.error || "Failed to compare runs");

@@ -79,7 +79,7 @@ export default function RunsPage() {
         page: page.toString(),
         limit: "6",
       });
-      const res = await fetch(`/api/runs?${params}`);
+      const res = await fetch(`/api/test-runs?${params}`);
       const data = await res.json();
       setRuns(data.runs || []);
       setTotal(data.total || 0);
@@ -215,7 +215,7 @@ export default function RunsPage() {
                           <button
                             onClick={(e) => {
                               // Link to Triage page or open specialized run triage
-                              window.location.href = `/triage?runId=${run.id}`;
+                              window.location.href = `/triage-center?runId=${run.id}`;
                             }}
                             className="px-4 py-2 rounded-xl bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-rose-400 transition-all shadow-lg shadow-rose-900/40"
                           >

@@ -66,7 +66,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`/api/runs?limit=100&project=${selectedProject}`)
+    fetch(`/api/test-runs?limit=100&project=${selectedProject}`)
       .then((r) => r.json())
       .then((d) => { setData(d); setLoading(false); })
       .catch(() => setLoading(false));
@@ -263,7 +263,7 @@ export default function DashboardPage() {
             <div className="lg:col-span-2 glass rounded-[2rem] p-8 border-white/[0.03]">
               <div className="flex items-center justify-between mb-6">
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Live Execution Stream</p>
-                <Link href="/runs" className="text-[10px] font-black text-indigo-400 uppercase tracking-widest hover:text-indigo-300 transition-colors">History &rarr;</Link>
+                <Link href="/test-runs" className="text-[10px] font-black text-indigo-400 uppercase tracking-widest hover:text-indigo-300 transition-colors">History &rarr;</Link>
               </div>
               <div className="divide-y divide-white/[0.03]">
                 {recentActivity.map((run: Run) => (
@@ -282,9 +282,9 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex flex-col gap-4">
-              <QuickLink href="/runs" icon={<CheckCircle2 className="w-5 h-5" />} label="Test Runs" desc="Detailed history" color="indigo" />
+              <QuickLink href="/test-runs" icon={<CheckCircle2 className="w-5 h-5" />} label="Test Runs" desc="Detailed history" color="indigo" />
               <QuickLink href="/projects" icon={<FolderOpen className="w-5 h-5" />} label="Projects" desc="API management" color="purple" />
-              <QuickLink href="/predictive" icon={<Sparkles className="w-5 h-5" />} label="Predictive AI" desc="Forecasting engine" color="emerald" />
+              <QuickLink href="/predictive-analysis" icon={<Sparkles className="w-5 h-5" />} label="Predictive AI" desc="Forecasting engine" color="emerald" />
             </div>
           </div>
         </div>

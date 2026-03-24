@@ -3,7 +3,7 @@ import { getToken } from "next-auth/jwt";
 import prisma from "@/lib/db";
 import { Prisma } from "@prisma/client";
 
-// PUT /api/users/[id] — Update user role (ADMIN only)
+// PUT /api/user-management/[id] — Update user role (ADMIN only)
 // (Keeping this standard for now as it doesn't hang)
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET || "oneqa-enterprise-secret-change-in-production" });
@@ -37,7 +37,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   return NextResponse.json(user);
 }
 
-// DELETE /api/users/[id] — Delete user (ADMIN only)
+// DELETE /api/user-management/[id] — Delete user (ADMIN only)
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   

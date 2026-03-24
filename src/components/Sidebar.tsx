@@ -34,8 +34,8 @@ interface NavItem {
 
 const dashboardItems: NavItem[] = [
   { href: "/", label: "Overview", icon: Activity, minGlobalRole: null },
-  { href: "/triage", label: "Triage Center", icon: AlertTriangle, minGlobalRole: null },
-  { href: "/runs", label: "Test Runs", icon: CheckCircle2, minGlobalRole: null },
+  { href: "/triage-center", label: "Triage Center", icon: AlertTriangle, minGlobalRole: null },
+  { href: "/test-runs", label: "Test Runs", icon: CheckCircle2, minGlobalRole: null },
   { href: "/projects", label: "Projects", icon: FolderOpen, minGlobalRole: null },
   { href: "/performance", label: "Performance", icon: Clock, minGlobalRole: null },
   { href: "/compare", label: "Compare Runs", icon: GitCompareArrows, minGlobalRole: null },
@@ -43,13 +43,13 @@ const dashboardItems: NavItem[] = [
 
 const analyticsItems: NavItem[] = [
   { href: "/success-rates", label: "Success Rates", icon: BarChart3, minGlobalRole: null },
-  { href: "/predictive", label: "Predictive Analysis", icon: TrendingUp, minGlobalRole: null },
+  { href: "/predictive-analysis", label: "Predictive Analysis", icon: TrendingUp, minGlobalRole: null },
   { href: "/business-value", label: "Business Value", icon: Sparkles, minGlobalRole: null },
-  { href: "/kpis", label: "Automation KPIs", icon: Gauge, minGlobalRole: null },
+  { href: "/automation-kpis", label: "Automation KPIs", icon: Gauge, minGlobalRole: null },
 ];
 
 const adminItems: NavItem[] = [
-  { href: "/users", label: "User Management", icon: Users, minGlobalRole: "ADMIN" },
+  { href: "/user-management", label: "User Management", icon: Users, minGlobalRole: "ADMIN" },
 ];
 
 
@@ -80,7 +80,7 @@ export default function Sidebar() {
   useEffect(() => {
     async function fetchTriageCount() {
       try {
-        const res = await fetch("/api/runs?limit=100&status=failed");
+        const res = await fetch("/api/test-runs?limit=100&status=failed");
         if (res.ok) {
           const data = await res.json();
           const clusters = clusterFailures(data.runs || []);
@@ -94,7 +94,7 @@ export default function Sidebar() {
     async function fetchPendingApprovalsCount() {
       if (userRole !== "ADMIN") return;
       try {
-        const res = await fetch("/api/admin/users/approve");
+        const res = await fetch("/api/admin/user-management/approve");
         if (res.ok) {
           const data = await res.json();
           setPendingApprovalsCount(data.length);
@@ -110,7 +110,7 @@ export default function Sidebar() {
   useEffect(() => {
     const handleUpdate = () => {
       if (userRole === "ADMIN") {
-        fetch("/api/admin/users/approve")
+        fetch("/api/admin/user-management/approve")
           .then(res => res.ok ? res.json() : [])
           .then(data => setPendingApprovalsCount(data.length))
           .catch(e => console.error("Sidebar pending approvals fetch failed", e));

@@ -70,7 +70,7 @@ export default function ProjectsPage() {
     try {
       const [projRes, usersRes] = await Promise.all([
         fetch("/api/projects"),
-        fetch("/api/users")
+        fetch("/api/user-management")
       ]);
       if (projRes.ok) setProjects(await projRes.json());
       if (usersRes.ok) setAllUsers(await usersRes.json());

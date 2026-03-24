@@ -105,7 +105,7 @@ export default function ProjectDetailPage() {
   }, [id]);
 
   const fetchUsers = useCallback(async () => {
-    const res = await fetch(`/api/users`);
+    const res = await fetch(`/api/user-management`);
     if (res.ok) setAllUsers(await res.json());
   }, []);
 

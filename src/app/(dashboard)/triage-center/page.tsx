@@ -100,7 +100,7 @@ function TriageContent() {
   useEffect(() => {
     async function fetchProjects() {
       try {
-        const res = await fetch("/api/runs?limit=1");
+        const res = await fetch("/api/test-runs?limit=1");
         if (res.ok) {
           const data = await res.json();
           setAllProjects((data.projects || []).sort());
@@ -119,7 +119,7 @@ function TriageContent() {
     async function fetchEnvs() {
       try {
         const projectParam = selectedProject !== "All Projects" ? `&project=${encodeURIComponent(selectedProject)}` : "";
-        const res = await fetch(`/api/runs?limit=1${projectParam}`);
+        const res = await fetch(`/api/test-runs?limit=1${projectParam}`);
         if (res.ok) {
           const data = await res.json();
           setAllEnvs((data.environments || []).sort());
@@ -136,7 +136,7 @@ function TriageContent() {
     setSelectedRunId("");
     async function fetchRuns() {
       try {
-        let url = "/api/runs?limit=50&status=failed";
+        let url = "/api/test-runs?limit=50&status=failed";
         if (selectedProject !== "All Projects") url += `&project=${encodeURIComponent(selectedProject)}`;
         if (selectedEnv !== "All Environments") url += `&env=${encodeURIComponent(selectedEnv)}`;
         const res = await fetch(url);
@@ -157,12 +157,12 @@ function TriageContent() {
       setLoading(true);
       try {
         const runsUrl = selectedRunId
-          ? `/api/runs?runId=${selectedRunId}` 
-          : "/api/runs?limit=100&status=failed";
+          ? `/api/test-runs?runId=${selectedRunId}` 
+          : "/api/test-runs?limit=100&status=failed";
 
         const [runsRes, patternsRes] = await Promise.all([
           fetch(runsUrl),
-          fetch("/api/triage/patterns")
+          fetch("/api/triage-center/patterns")
         ]);
         
         const runsData = await runsRes.json();
@@ -213,7 +213,7 @@ function TriageContent() {
     const testIds = selectedCluster.failures.map((f: TriageFailure) => f.id);
     
     try {
-      const res = await fetch("/api/triage/bulk", {
+      const res = await fetch("/api/triage-center/bulk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -298,7 +298,7 @@ function TriageContent() {
 
   const handleDeletePattern = async (id: string) => {
     try {
-      const res = await fetch(`/api/triage/patterns/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/triage-center/patterns/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setPatterns(patterns.filter(p => p.id !== id));
         setTriageStatus('Pattern Removed');
