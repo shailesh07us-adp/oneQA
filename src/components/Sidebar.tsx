@@ -19,6 +19,7 @@ import {
   Sparkles,
   AlertTriangle,
   Gauge,
+  GitCompareArrows,
 } from "lucide-react";
 import { clusterFailures } from "@/lib/intelligence";
 import { useNavigation } from "./NavigationProvider";
@@ -37,6 +38,7 @@ const dashboardItems: NavItem[] = [
   { href: "/runs", label: "Test Runs", icon: CheckCircle2, minGlobalRole: null },
   { href: "/projects", label: "Projects", icon: FolderOpen, minGlobalRole: null },
   { href: "/performance", label: "Performance", icon: Clock, minGlobalRole: null },
+  { href: "/compare", label: "Compare Runs", icon: GitCompareArrows, minGlobalRole: null },
 ];
 
 const analyticsItems: NavItem[] = [

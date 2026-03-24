@@ -15,7 +15,9 @@ import {
   Sparkles,
   Clock,
   Zap,
+  GitCompareArrows,
 } from "lucide-react";
+import Link from "next/link";
 import { relativeTime, downloadCsv } from "@/lib/utils";
 
 interface Test {
@@ -125,6 +127,9 @@ export default function RunsPage() {
             <button onClick={handleRefresh} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/60 border border-slate-700/50 text-slate-300 text-xs font-medium hover:bg-slate-700/60 hover:text-white transition-all">
               <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} /> Refresh
             </button>
+            <Link href="/compare" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-medium hover:bg-purple-500/20 transition-all">
+              <GitCompareArrows className="w-3.5 h-3.5" /> Compare Runs
+            </Link>
             <button onClick={() => downloadCsv(runs as any, `oneqa-test-runs-${new Date().toISOString().split("T")[0]}`)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-medium hover:bg-indigo-500/20 transition-all">
               <Download className="w-3.5 h-3.5" /> Export CSV
             </button>
