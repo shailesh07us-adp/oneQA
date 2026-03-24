@@ -4,6 +4,19 @@ A modern, full-stack test analytics dashboard built with **Next.js 15**, **React
 
 ---
 
+## 📸 Screenshots
+
+### Executive Overview
+![Executive Overview — stat cards, orbital gauges, testing pyramid, and trend charts](docs/screenshots/dashboard-overview.png)
+
+### Triage Center
+![Triage Center — failure pattern analysis with project & environment filters](docs/screenshots/triage-center.png)
+
+### Automation KPIs
+![Automation KPIs — strategic metrics with orbital gauges and trend analysis](docs/screenshots/automation-kpis.png)
+
+---
+
 ## ✨ Features
 
 ### 📊 Overview Dashboard
