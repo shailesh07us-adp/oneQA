@@ -18,6 +18,7 @@ import {
   TrendingUp,
   Sparkles,
   AlertTriangle,
+  Gauge,
 } from "lucide-react";
 import { clusterFailures } from "@/lib/intelligence";
 import { useNavigation } from "./NavigationProvider";
@@ -42,6 +43,7 @@ const analyticsItems: NavItem[] = [
   { href: "/success-rates", label: "Success Rates", icon: BarChart3, minGlobalRole: null },
   { href: "/predictive", label: "Predictive Analysis", icon: TrendingUp, minGlobalRole: null },
   { href: "/business-value", label: "Business Value", icon: Sparkles, minGlobalRole: null },
+  { href: "/kpis", label: "Automation KPIs", icon: Gauge, minGlobalRole: null },
 ];
 
 const adminItems: NavItem[] = [
